@@ -296,17 +296,14 @@ let selections = {};
 
 // 页面加载先检测登录状态 + 自动加载历史预测
 document.addEventListener('DOMContentLoaded', async () => {
-    // 【关键优化】强制使用session模式，关闭持久化，确保每次打开都需重新登录
-    // session模式下，关闭浏览器标签页后登录状态即失效
+    // 使用session模式，关闭浏览器后登录状态失效
     await supabaseClient.auth.setPersistence('session');
     
     // 获取当前会话状态
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     
-    // 【关键优化】无论是否有session，都强制检查登录状态
     // 如果没有登录或者session无效，跳转到登录页面
     if (!session || !session.user) {
-        // 清除可能存在的旧session
         await supabaseClient.auth.signOut();
         location.href = "index.html";
         return;
@@ -323,7 +320,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function logout(){
     try {
         await supabaseClient.auth.signOut();
-        // 清除本地存储的任何残留数据
         localStorage.removeItem('supabase.auth.token');
         localStorage.removeItem('supabase.auth.refreshToken');
         location.href = "index.html";
@@ -348,8 +344,19 @@ async function loadUserBracket(){
             console.log("用户首次使用，无历史数据:", error.message);
             selections = {};
         } else if (data?.selections) {
-            selections = JSON.parse(typeof data.selections === 'string' ? data.selections : JSON.stringify(data.selections));
-            console.log("已加载历史预测数据");
+            // 兼容字符串和对象格式
+            if (typeof data.selections === 'string') {
+                try {
+                    selections = JSON.parse(data.selections);
+                } catch {
+                    selections = {};
+                }
+            } else if (typeof data.selections === 'object') {
+                selections = data.selections;
+            } else {
+                selections = {};
+            }
+            console.log("已加载历史预测数据:", selections);
         } else {
             selections = {};
         }
@@ -425,36 +432,60 @@ const eastTeams = [
 const west8 = westTeams.slice(0,8);
 const east8 = eastTeams.slice(0,8);
 
+// 生成matchup的唯一ID
 function mid(conf, round, m) { return conf + 'R' + round + 'M' + m; }
 
+// 获取某一轮的对阵信息
 function getMatchups(conf, round) {
     const t = conf === 'W' ? west8 : east8;
+    
+    // 第一轮：直接返回固定对阵
     if (round === 1) {
         return [[t[0],t[7]], [t[1],t[6]], [t[2],t[5]], [t[3],t[4]]];
     }
+    
+    // 获取上一轮的对阵
     const prev = getMatchups(conf, round - 1);
-    if (!prev) return null;
+    if (!prev) return [];
+    
+    // 根据上一轮的选择确定胜者
     const winners = [];
     for (let i = 0; i < prev.length; i++) {
         const s = selections[mid(conf, round-1, i)];
-        if (!s) return null;
-        winners.push(s === 'H' ? prev[i][0] : prev[i][1]);
+        if (s) {
+            winners.push(s === 'H' ? prev[i][0] : prev[i][1]);
+        } else {
+            // 如果没有选择，返回空数组（表示此轮不可用）
+            return [];
+        }
     }
+    
+    // 生成当前轮的对阵
     const res = [];
     for (let i = 0; i < winners.length; i += 2) {
-        if (i + 1 < winners.length) res.push([winners[i], winners[i+1]]);
+        if (i + 1 < winners.length) {
+            res.push([winners[i], winners[i+1]]);
+        }
     }
     return res;
 }
 
+// 获取总决赛队伍
 function getFinalsTeams() {
-    const w = getMatchups('W', 3), e = getMatchups('E', 3);
-    if (!w || !e) return null;
-    const ws = selections[mid('W',3,0)], es = selections[mid('E',3,0)];
+    const w = getMatchups('W', 3);
+    const e = getMatchups('E', 3);
+    
+    if (!w || !e || w.length === 0 || e.length === 0) return null;
+    
+    const ws = selections[mid('W', 3, 0)];
+    const es = selections[mid('E', 3, 0)];
+    
     if (!ws || !es) return null;
+    
     return [ws === 'H' ? w[0][0] : w[0][1], es === 'H' ? e[0][0] : e[0][1]];
 }
 
+// 生成球队HTML
 function teamHTML(team, matchId, side) {
     const isSel = selections[matchId] === side;
     let cls = 'team-row';
@@ -468,6 +499,7 @@ function teamHTML(team, matchId, side) {
     </div>`;
 }
 
+// 生成空球队HTML
 function emptyTeamHTML() {
     return `<div class="team-row empty">
         <span class="seed-badge">?</span>
@@ -477,6 +509,7 @@ function emptyTeamHTML() {
     </div>`;
 }
 
+// 生成对阵HTML
 function matchupHTML(pair, matchId) {
     let html = '<div class="matchup">';
     html += teamHTML(pair[0], matchId, 'H');
@@ -485,28 +518,34 @@ function matchupHTML(pair, matchId) {
     return html;
 }
 
+// 生成空对阵HTML
 function emptyMatchupHTML() {
     return `<div class="matchup">${emptyTeamHTML()}${emptyTeamHTML()}</div>`;
 }
 
+// 轮次标签
 function roundLabel(r) {
     return r===1 ? '首轮' : r===2 ? '半决赛' : '分区决赛';
 }
 
+// 渲染对阵图
 function renderBracket() {
     const el = document.getElementById('bracket-main');
     let html = '';
 
+    // 渲染西部
     html += '<div class="conf-side west"><div class="conf-label west">西部</div>';
     for (let r = 1; r <= 3; r++) {
         html += '<div class="conn"><div class="conn-line"></div></div>';
         html += `<div class="round-col r${r}"><div class="round-label">${roundLabel(r)}</div>`;
         const ms = getMatchups('W', r);
-        const cnt = r===1 ? 4 : r===2 ? 2 : 1;
+        const cnt = r === 1 ? 4 : r === 2 ? 2 : 1;
+        
         for (let i = 0; i < cnt; i++) {
             const midKey = mid('W', r, i);
-            if (ms && ms[i]) {
-                html += matchupHTML(ms[i], midKey);
+            // 第一轮总是显示，其他轮需要有上一轮的选择才显示
+            if (r === 1 || (ms && ms[i])) {
+                html += matchupHTML(ms && ms[i] ? ms[i] : [], midKey);
             } else {
                 html += emptyMatchupHTML();
             }
@@ -515,14 +554,16 @@ function renderBracket() {
     }
     html += '</div>';
 
+    // 渲染总决赛区域
     const ft = getFinalsTeams();
     const fsSel = selections['FINALS'];
     html += '<div class="finals-zone"><div class="conn"><div class="conn-line"></div></div>';
     html += `<div class="finals-card ${fsSel ? 'complete' : ''}">
         <div class="finals-header">NBA 总决赛</div>`;
+    
     if (ft) {
-        const wCls = fsSel==='W' ? 'finals-team selected' : 'finals-team';
-        const eCls = fsSel==='E' ? 'finals-team selected' : 'finals-team';
+        const wCls = fsSel === 'W' ? 'finals-team selected' : 'finals-team';
+        const eCls = fsSel === 'E' ? 'finals-team selected' : 'finals-team';
         html += `<div class="${wCls}" onclick="pickFinals('W')">
             <span class="team-dot" style="background:${ft[0].color}"></span>
             <span class="tname">${ft[0].name}</span>
@@ -539,16 +580,19 @@ function renderBracket() {
     }
     html += '</div></div>';
 
+    // 渲染东部
     html += '<div class="conf-side east"><div class="conf-label east">东部</div>';
     for (let r = 1; r <= 3; r++) {
         html += '<div class="conn"><div class="conn-line"></div></div>';
         html += `<div class="round-col r${r}"><div class="round-label">${roundLabel(r)}</div>`;
         const ms = getMatchups('E', r);
-        const cnt = r===1 ? 4 : r===2 ? 2 : 1;
+        const cnt = r === 1 ? 4 : r === 2 ? 2 : 1;
+        
         for (let i = 0; i < cnt; i++) {
             const midKey = mid('E', r, i);
-            if (ms && ms[i]) {
-                html += matchupHTML(ms[i], midKey);
+            // 第一轮总是显示，其他轮需要有上一轮的选择才显示
+            if (r === 1 || (ms && ms[i])) {
+                html += matchupHTML(ms && ms[i] ? ms[i] : [], midKey);
             } else {
                 html += emptyMatchupHTML();
             }
@@ -583,8 +627,8 @@ function pickFinals(side) {
     saveUserBracket();
 
     const ft = getFinalsTeams();
-    if (ft) {
-        const champ = side==='W' ? ft[0] : ft[1];
+    if (ft && selections['FINALS']) {
+        const champ = side === 'W' ? ft[0] : ft[1];
         document.getElementById('champion-name').innerText = champ.name;
         document.getElementById('champion-detail').innerText = `${champ.abbr} · ${champ.w}胜${champ.l}负`;
         document.getElementById('champion-reveal').classList.add('show');
@@ -592,12 +636,18 @@ function pickFinals(side) {
     }
 }
 
-// 重置所有预测
+// 重置所有预测（登录状态下可用）
 function resetBracket() {
     if (!confirm('确定要清空所有预测吗？不可恢复！')) return;
+    
     selections = {};
     renderBracket();
     saveUserBracket();
+    
+    // 关闭总冠军弹窗（如果打开）
+    closeChampion();
+    
+    console.log("预测已重置");
 }
 
 function closeChampion() {
@@ -628,10 +678,10 @@ function updateProgress() {
 }
 
 function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     event.target.classList.add('active');
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    document.getElementById('sec-'+tab).classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + tab).classList.add('active');
 }
 
 function renderStandings(teams, tableId) {
@@ -639,12 +689,12 @@ function renderStandings(teams, tableId) {
     let html = `<thead><tr><th>排名</th><th>球队</th><th>战绩</th><th>胜率</th></tr></thead><tbody>`;
     teams.forEach((t, idx) => {
         let rankCls = 'rank-badge ';
-        if (t.seed <=6) rankCls += 'r1-6';
-        else if (t.seed <=10) rankCls += 'r7-10';
+        if (t.seed <= 6) rankCls += 'r1-6';
+        else if (t.seed <= 10) rankCls += 'r7-10';
         else rankCls += 'r11-15';
 
-        if (t.seed ===7) html += `<tr class="divider-playin"><td colspan="4">附加赛区域 7-10名</td></tr>`;
-        if (t.seed ===11) html += `<tr class="divider-out"><td colspan="4">无缘季后赛</td></tr>`;
+        if (t.seed === 7) html += `<tr class="divider-playin"><td colspan="4">附加赛区域 7-10名</td></tr>`;
+        if (t.seed === 11) html += `<tr class="divider-out"><td colspan="4">无缘季后赛</td></tr>`;
 
         html += `<tr>
             <td><span class="${rankCls}">${t.seed}</span></td>
@@ -657,6 +707,7 @@ function renderStandings(teams, tableId) {
     tbl.innerHTML = html;
 }
 
+// 渲染常规赛排名
 renderStandings(westTeams, 'west-table');
 renderStandings(eastTeams, 'east-table');
 </script>
