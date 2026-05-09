@@ -213,7 +213,7 @@
         .s-table { width: 100%; border-collapse: collapse; }
         .s-table th { padding: 10px 14px; text-align: left; color: #555; font-size: 0.7rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #1e1e22; }
         .s-table td { padding: 9px 14px; font-size: 0.85rem; border-bottom: 1px solid #141418; }
-        .s-table tr:hover td { background: rgba255,255,255,0.02; }
+        .s-table tr:hover td { background: rgba(255,255,255,0.02); }
         .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 5px; font-weight: 700; font-size: 0.75rem; }
         .rank-badge.r1-6 { background: linear-gradient(135deg, #c9082a, #8b0620); color: #fff; }
         .rank-badge.r7-10 { background: linear-gradient(135deg, #2d5a1e, #3d7a2e); color: #fff; }
@@ -285,7 +285,7 @@
     </div>
 
 <script>
-// ============ 你不用改下面这两行，保留你原来的就行 ============
+// ============ 密钥配置（保持不变） ============
 const SUPABASE_URL = "https://mqgmvpwweqviwyccjmdj.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZ212cHd3ZXF2aXd5Y2NqbWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODk2NjEsImV4cCI6MjA5Mzg2NTY2MX0.pV6r_eG865nEJv83-p-0bWkW3H5_jgowAsjgH1s7rAU";
 // ============================================================
@@ -296,39 +296,66 @@ let selections = {};
 
 // 页面加载先检测登录状态 + 自动加载历史预测
 document.addEventListener('DOMContentLoaded', async () => {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) {
+    // 【关键优化】强制使用session模式，关闭持久化，确保每次打开都需重新登录
+    // session模式下，关闭浏览器标签页后登录状态即失效
+    await supabaseClient.auth.setPersistence('session');
+    
+    // 获取当前会话状态
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    
+    // 【关键优化】无论是否有session，都强制检查登录状态
+    // 如果没有登录或者session无效，跳转到登录页面
+    if (!session || !session.user) {
+        // 清除可能存在的旧session
+        await supabaseClient.auth.signOut();
         location.href = "index.html";
         return;
     }
+    
     currentUser = session.user;
-    // 开启会话持久化，防止几分钟掉线
-    supabaseClient.auth.setPersistence('local');
+    console.log("当前用户:", currentUser.email);
+    
+    // 加载用户之前的预测数据
     await loadUserBracket();
 });
 
 // 退出登录
 async function logout(){
-    await supabaseClient.auth.signOut();
-    location.href = "index.html";
+    try {
+        await supabaseClient.auth.signOut();
+        // 清除本地存储的任何残留数据
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('supabase.auth.refreshToken');
+        location.href = "index.html";
+    } catch (err) {
+        console.error("退出登录失败:", err);
+        location.href = "index.html";
+    }
 }
 
 // 从数据库加载历史预测
 async function loadUserBracket(){
+    if (!currentUser) return;
+    
     try {
-        const { data } = await supabaseClient
+        const { data, error } = await supabaseClient
             .from("user_brackets")
             .select("selections")
             .eq("user_id", currentUser.id)
             .single();
 
-        if (data?.selections) {
-            selections = data.selections;
+        if (error) {
+            console.log("用户首次使用，无历史数据:", error.message);
+            selections = {};
+        } else if (data?.selections) {
+            selections = JSON.parse(typeof data.selections === 'string' ? data.selections : JSON.stringify(data.selections));
+            console.log("已加载历史预测数据");
         } else {
             selections = {};
         }
         renderBracket();
     } catch (e) {
+        console.error("加载预测数据失败:", e);
         selections = {};
         renderBracket();
     }
@@ -337,14 +364,25 @@ async function loadUserBracket(){
 // 自动保存到云端（每次选队伍都会触发）
 async function saveUserBracket(){
     if (!currentUser) return;
+    
     try {
-        await supabaseClient
+        const { error } = await supabaseClient
             .from("user_brackets")
             .upsert([
-                { user_id: currentUser.id, selections: selections }
+                { 
+                    user_id: currentUser.id, 
+                    selections: JSON.stringify(selections),
+                    updated_at: new Date().toISOString()
+                }
             ], { onConflict: 'user_id' });
+
+        if (error) {
+            console.error("保存失败:", error);
+        } else {
+            console.log("预测数据已保存到Supabase");
+        }
     } catch (err) {
-        console.error("保存失败", err);
+        console.error("保存失败（异常）:", err);
     }
 }
 
@@ -523,7 +561,7 @@ function renderBracket() {
     updateProgress();
 }
 
-// 选队伍 - 选完自动保存
+// 选队伍 - 选完自动保存到Supabase
 function pick(matchId, side) {
     if (selections[matchId] === side) {
         delete selections[matchId];
@@ -534,7 +572,7 @@ function pick(matchId, side) {
     saveUserBracket();
 }
 
-// 选总冠军 - 选完自动保存
+// 选总冠军 - 选完自动保存到Supabase
 function pickFinals(side) {
     if (selections['FINALS'] === side) {
         delete selections['FINALS'];
