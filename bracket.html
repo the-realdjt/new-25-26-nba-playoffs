@@ -22,7 +22,6 @@
         }
         .container { position: relative; z-index: 1; max-width: 1800px; margin: 0 auto; padding: 20px; }
 
-        /* 头部 */
         header { text-align: center; padding: 30px 0 20px; position: relative; }
         header::after {
             content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
@@ -49,7 +48,6 @@
             font-size: 0.8rem; color: #aaa; letter-spacing: 1px;
         }
 
-        /* 选项卡 */
         .tabs { display: flex; justify-content: center; gap: 10px; margin: 24px 0 16px; }
         .tab {
             padding: 10px 24px; border: 1px solid #222; background: transparent; color: #666;
@@ -64,7 +62,6 @@
         .section { display: none; }
         .section.active { display: block; }
 
-        /* 进度条 */
         .progress-bar {
             max-width: 500px; margin: 10px auto; padding: 8px 16px;
             background: #141418; border-radius: 10px; border: 1px solid #222;
@@ -73,14 +70,12 @@
         .progress-track { width: 100%; height: 4px; background: #222; border-radius: 2px; overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #c9082a, #ffd700); border-radius: 2px; transition: width 0.5s ease; }
 
-        /* ==================== 对阵图核心 ==================== */
         .bracket-wrapper { overflow-x: auto; padding: 10px 0; }
         .bracket-main {
             display: flex; align-items: center; justify-content: center;
             min-width: 1200px; min-height: 640px; gap: 0;
         }
 
-        /* 每个分区 */
         .conf-side {
             display: flex; align-items: center; flex-shrink: 0;
         }
@@ -95,7 +90,6 @@
         .conf-label.west { background: linear-gradient(135deg, #c9082a, #e03050); }
         .conf-label.east { background: linear-gradient(135deg, #17408b, #1a5bc4); }
 
-        /* 轮次列 */
         .round-col {
             display: flex; flex-direction: column; justify-content: center; flex-shrink: 0;
         }
@@ -108,11 +102,9 @@
             text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
         }
 
-        /* 连接线 */
         .conn { width: 24px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; }
         .conn-line { height: 1px; background: #2a2a2e; }
 
-        /* 对阵卡 */
         .matchup {
             width: 210px; background: linear-gradient(145deg, #131316, #18181c);
             border: 1px solid #252528; border-radius: 10px; overflow: hidden;
@@ -145,7 +137,6 @@
         .win-check { color: #ffd700; font-size: 0.75rem; margin-left: 4px; opacity: 0; transition: opacity 0.3s; }
         .team-row.selected .win-check { opacity: 1; }
 
-        /* 总决赛 */
         .finals-zone { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 10px; }
         .finals-card {
             width: 230px; background: linear-gradient(145deg, #131316, #18181c);
@@ -172,7 +163,6 @@
         .finals-team .win-check { font-size: 0.9rem; }
         .finals-vs { text-align: center; padding: 4px; font-size: 0.6rem; color: #444; letter-spacing: 2px; font-weight: 700; }
 
-        /* 总冠军特效 */
         .champion-reveal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1000; display: none; align-items: center; justify-content: center;
@@ -208,7 +198,6 @@
         }
         .reset-btn:hover { border-color: #c9082a; color: #fff; }
 
-        /* ==================== 排名 ==================== */
         .standings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 16px; }
         .conf-table {
             background: linear-gradient(145deg, #111114, #16161a);
@@ -250,7 +239,7 @@
             </div>
             <p class="subtitle">2025-26 赛季 · 点击选择你预测的胜者</p>
             <div class="hint-badge">👆 点击球队选择晋级 · 从首轮开始逐步预测</div>
-            <button class="reset-btn" onclick="logout()" style="margin-top:10px;">🚪 退出登录</button>
+            <button class="reset-btn" onclick="logout()">🚪 退出登录</button>
         </header>
         <div class="tabs">
             <button class="tab active" onclick="switchTab('bracket')">季后赛对阵图</button>
@@ -287,57 +276,40 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ==============================================
-// 只改这里！粘贴你自己的密钥
-// ==============================================
-const SUPABASE_URL = "https://mqgmvpwweqviwyccjmdj.supabase.co/rest/v1/";
+const SUPABASE_URL = "https://mqgmvpwweqviwyccjmdj.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZ212cHd3ZXF2aXd5Y2NqbWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODk2NjEsImV4cCI6MjA5Mzg2NTY2MX0.pV6r_eG865nEJv83-p-0bWkW3H5_jgowAsjgH1s7rAU";
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let selections = {};
 
-// 登录校验
-supabase.auth.onAuthStateChange(async (e, sess) => {
-    if(!sess){
-        location.href = "index.html";
-        return;
-    }
+supabaseClient.auth.onAuthStateChange(async (e, sess) => {
+    if(!sess){ location.href = "index.html"; return; }
     currentUser = sess.user;
-    await loadUserBracket();
+    loadUserBracket();
 });
 
-// 退出登录
 async function logout(){
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
 }
 
-// 加载用户数据
 async function loadUserBracket(){
-    const { data } = await supabase
+    const { data } = await supabaseClient
         .from("user_brackets")
         .select("selections")
         .eq("user_id", currentUser.id)
         .single();
-
-    if(data?.selections){
-        selections = data.selections;
-    }else{
-        selections = {};
-    }
+    selections = data?.selections || {};
     renderBracket();
 }
 
-// 保存用户数据
 async function saveUserBracket(){
     if(!currentUser) return;
-    await supabase.from("user_brackets").upsert({
-        user_id: currentUser.id,
-        selections: selections
+    await supabaseClient.from("user_brackets").upsert({
+        user_id: currentUser.id, selections: selections
     }, { onConflict: "user_id" });
 }
 
-// ==================== 数据 ====================
 const westTeams = [
     { seed:1, name:'俄克拉荷马城雷霆', abbr:'OKC', color:'#007AC1', w:64, l:18, pct:'.780' },
     { seed:2, name:'圣安东尼奥马刺', abbr:'SAS', color:'#C4CED4', w:62, l:20, pct:'.756' },
@@ -376,7 +348,6 @@ const eastTeams = [
 const west8 = westTeams.slice(0, 8);
 const east8 = eastTeams.slice(0, 8);
 
-// ==================== 对阵逻辑 ====================
 function mid(conf, round, m) { return conf + 'R' + round + 'M' + m; }
 
 function getMatchups(conf, round) {
@@ -407,7 +378,6 @@ function getFinalsTeams() {
     return [ws === 'H' ? w[0][0] : w[0][1], es === 'H' ? e[0][0] : e[0][1]];
 }
 
-// ==================== 渲染 ====================
 function teamHTML(team, matchId, side, sel) {
     const isSel = sel === side;
     const isElim = sel && !isSel;
@@ -448,7 +418,6 @@ function renderBracket() {
     const el = document.getElementById('bracket-main');
     let h = '';
 
-    // ---- 西部 ----
     h += '<div class="conf-side west">';
     h += '<div class="conf-label west">WEST</div>';
     for (let r = 1; r <= 3; r++) {
@@ -470,7 +439,6 @@ function renderBracket() {
     }
     h += '</div>';
 
-    // ---- 总决赛 ----
     const ft = getFinalsTeams();
     const fs = selections['FINALS'];
     h += '<div class="finals-zone">';
@@ -495,7 +463,6 @@ function renderBracket() {
     }
     h += '</div></div>';
 
-    // ---- 东部 ----
     h += '<div class="conf-side east">';
     for (let r = 1; r <= 3; r++) {
         const mc = r === 1 ? 4 : r === 2 ? 2 : 1;
@@ -521,7 +488,6 @@ function renderBracket() {
     updateProgress();
 }
 
-// ==================== 交互 ====================
 function pick(matchId, side) {
     if (selections[matchId] === side) {
         delete selections[matchId];
@@ -539,7 +505,7 @@ function pick(matchId, side) {
         delete selections['FINALS'];
     }
     renderBracket();
-    saveUserBracket(); // 自动保存
+    saveUserBracket();
 }
 
 function pickFinals(side) {
@@ -549,7 +515,7 @@ function pickFinals(side) {
     } else {
         selections['FINALS'] = side;
         renderBracket();
-        saveUserBracket(); // 自动保存
+        saveUserBracket();
         setTimeout(showChampion, 300);
     }
 }
@@ -557,7 +523,7 @@ function pickFinals(side) {
 function resetBracket() {
     selections = {};
     renderBracket();
-    saveUserBracket(); // 自动保存
+    saveUserBracket();
     document.getElementById('champion-reveal').classList.remove('show');
 }
 
@@ -568,7 +534,6 @@ function updateProgress() {
     document.getElementById('progress-fill').style.width = Math.round(done/total*100) + '%';
 }
 
-// ==================== 总冠军特效 ====================
 function showChampion() {
     const ft = getFinalsTeams();
     if (!ft) return;
@@ -604,7 +569,6 @@ function launchConfetti() {
     }
 }
 
-// ==================== 排名 ====================
 function renderStandings(teams, tableId) {
     const table = document.getElementById(tableId);
     let h = '<thead><tr><th>排名</th><th>球队</th><th>战绩</th><th>胜率</th></tr></thead><tbody>';
@@ -621,7 +585,6 @@ function renderStandings(teams, tableId) {
     table.innerHTML = h;
 }
 
-// ==================== 选项卡 ====================
 function switchTab(tab) {
     document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
     document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
@@ -634,7 +597,6 @@ function switchTab(tab) {
     }
 }
 
-// 初始化
 renderStandings(westTeams, 'west-table');
 renderStandings(eastTeams, 'east-table');
 </script>
