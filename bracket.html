@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NBA 2025-26 季后赛预测</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Orbitron:wght@400;700;900&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -110,7 +111,7 @@
             border: 1px solid #252528; border-radius: 10px; overflow: hidden;
             transition: all 0.3s; flex-shrink: 0;
         }
-        .matchup:hover { border-color: #c9082a44; box-shadow: 0 0 15px rgba(201,8,42,0.08); }
+        .matchup:hover { border-color: rgba(201,8,42,0.25); box-shadow: 0 0 15px rgba(201,8,42,0.08); }
 
         .team-row {
             display: flex; align-items: center; padding: 10px 12px; gap: 8px;
@@ -122,14 +123,14 @@
             background: rgba(201,8,42,0.12); border-left-color: #c9082a;
         }
         .team-row.selected .seed-badge { background: #c9082a; color: #fff; }
-        .team-row.eliminated { opacity: 0.25; }
+        .team-row.eliminated { opacity: 0.25; pointer-events: none; }
         .team-row.eliminated .tname { text-decoration: line-through; }
         .team-row.empty { cursor: default; opacity: 0.35; }
 
         .seed-badge {
             width: 22px; height: 22px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;
             display: inline-flex; align-items: center; justify-content: center;
-            background: #222; color: #555; flex-shrink: 0; transition: all 0.3s;
+            background: #222; color: #555; flex-shrink: 0; transition: all 0.25s;
         }
         .team-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
         .tname { font-size: 0.8rem; font-weight: 600; flex: 1; }
@@ -151,13 +152,11 @@
         }
         .finals-team {
             padding: 16px 14px; display: flex; align-items: center; gap: 10px;
-            cursor: pointer; transition: all 0.3s; border-left: 3px solid transparent;
+            cursor: pointer; transition: all 0.25s; border-left: 3px solid transparent;
         }
         .finals-team + .finals-team { border-top: 1px solid #1a1a1e; }
         .finals-team:hover { background: rgba(255,255,255,0.03); }
         .finals-team.selected { background: rgba(255,215,0,0.1); border-left-color: #ffd700; }
-        .finals-team.eliminated { opacity: 0.25; }
-        .finals-team.empty { cursor: default; }
         .finals-team .team-dot { width: 10px; height: 10px; }
         .finals-team .tname { font-size: 0.9rem; }
         .finals-team .win-check { font-size: 0.9rem; }
@@ -188,7 +187,9 @@
         .close-btn:hover { background: #ffd700; color: #000; }
         .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1001; overflow: hidden; }
         .confetti { position: absolute; top: -10px; animation: confettiFall linear forwards; }
-        @keyframes confettiFall { to { top: 110vh; transform: rotateZ(720deg); } }
+        @keyframes confettiFall {
+            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
 
         .reset-btn {
             display: block; margin: 20px auto; padding: 10px 30px;
@@ -212,14 +213,14 @@
         .s-table { width: 100%; border-collapse: collapse; }
         .s-table th { padding: 10px 14px; text-align: left; color: #555; font-size: 0.7rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #1e1e22; }
         .s-table td { padding: 9px 14px; font-size: 0.85rem; border-bottom: 1px solid #141418; }
-        .s-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .s-table tr:hover td { background: rgba255,255,255,0.02; }
         .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 5px; font-weight: 700; font-size: 0.75rem; }
         .rank-badge.r1-6 { background: linear-gradient(135deg, #c9082a, #8b0620); color: #fff; }
         .rank-badge.r7-10 { background: linear-gradient(135deg, #2d5a1e, #3d7a2e); color: #fff; }
         .rank-badge.r11-15 { background: #1a1a1e; color: #444; }
         .team-info { display: flex; align-items: center; gap: 8px; font-weight: 600; }
         .team-dot-sm { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .divider-playin td { padding: 6px 14px; background: rgba(45,90,30,0.1); color: #4ade80; font-size: 0.7rem; font-weight: 600; letter-spacing: 2px; text-align: center; }
+        .divider-playin td { padding: 6px 14px; background: rgba(45,90,30,0.08); color: #4ade80; font-size: 0.7rem; font-weight: 600; letter-spacing: 2px; text-align: center; }
         .divider-out td { padding: 6px 14px; background: rgba(100,100,100,0.05); color: #444; font-size: 0.7rem; font-weight: 600; letter-spacing: 2px; text-align: center; }
         .pct { color: #c9082a; font-weight: 600; }
 
@@ -237,28 +238,37 @@
                 <div class="nba-logo">NBA</div>
                 <h1>PLAYOFFS 2026</h1>
             </div>
-            <p class="subtitle">2025-26 赛季 · 点击选择你预测的胜者</p>
-            <div class="hint-badge">👆 点击球队选择晋级 · 从首轮开始逐步预测</div>
+            <p class="subtitle">2025-26 赛季 · 季后赛预测</p>
+            <div class="hint-badge">👆 点击球队选择晋级 · 自动云端保存</div>
             <button class="reset-btn" onclick="logout()">🚪 退出登录</button>
         </header>
+
         <div class="tabs">
             <button class="tab active" onclick="switchTab('bracket')">季后赛对阵图</button>
             <button class="tab" onclick="switchTab('standings')">常规赛排名</button>
         </div>
+
         <div class="section active" id="sec-bracket">
             <div class="progress-bar">
-                <div class="progress-text" id="progress-text">预测进度: 0 / 15</div>
-                <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+                <div class="progress-text">预测进度: <span id="progress-num">0</span> / 15</div>
+                <div class="progress-track"><div class="progress-fill" id="progress-bar-fill" style="width:0%"></div></div>
             </div>
             <div class="bracket-wrapper">
                 <div class="bracket-main" id="bracket-main"></div>
             </div>
             <button class="reset-btn" onclick="resetBracket()">🔄 重置所有预测</button>
         </div>
+
         <div class="section" id="sec-standings">
             <div class="standings-grid">
-                <div class="conf-table"><div class="conf-table-header west">WESTERN · 西部联盟</div><table class="s-table" id="west-table"></table></div>
-                <div class="conf-table"><div class="conf-table-header east">EASTERN · 东部联盟</div><table class="s-table" id="east-table"></table></div>
+                <div class="conf-table">
+                    <div class="conf-table-header west">西部联盟 WEST</div>
+                    <table class="s-table" id="west-table"></table>
+                </div>
+                <div class="conf-table">
+                    <div class="conf-table-header east">东部联盟 EAST</div>
+                    <table class="s-table" id="east-table"></table>
+                </div>
             </div>
         </div>
     </div>
@@ -267,49 +277,78 @@
         <div class="confetti-container" id="confetti-container"></div>
         <div class="champion-content">
             <div class="champion-trophy">🏆</div>
-            <div class="champion-label">NBA CHAMPION</div>
+            <div class="champion-label">总冠军</div>
             <div class="champion-name" id="champion-name"></div>
             <div class="champion-detail" id="champion-detail"></div>
-            <button class="close-btn" onclick="closeChampion()">确 定</button>
+            <button class="close-btn" onclick="closeChampion()">确认</button>
         </div>
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ============ 你不用改下面这两行，保留你原来的就行 ============
 const SUPABASE_URL = "https://mqgmvpwweqviwyccjmdj.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZ212cHd3ZXF2aXd5Y2NqbWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODk2NjEsImV4cCI6MjA5Mzg2NTY2MX0.pV6r_eG865nEJv83-p-0bWkW3H5_jgowAsjgH1s7rAU";
+// ============================================================
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let selections = {};
 
-supabaseClient.auth.onAuthStateChange(async (e, sess) => {
-    if(!sess){ location.href = "index.html"; return; }
-    currentUser = sess.user;
-    loadUserBracket();
+// 页面加载先检测登录状态 + 自动加载历史预测
+document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+        location.href = "index.html";
+        return;
+    }
+    currentUser = session.user;
+    // 开启会话持久化，防止几分钟掉线
+    supabaseClient.auth.setPersistence('local');
+    await loadUserBracket();
 });
 
+// 退出登录
 async function logout(){
     await supabaseClient.auth.signOut();
+    location.href = "index.html";
 }
 
+// 从数据库加载历史预测
 async function loadUserBracket(){
-    const { data } = await supabaseClient
-        .from("user_brackets")
-        .select("selections")
-        .eq("user_id", currentUser.id)
-        .single();
-    selections = data?.selections || {};
-    renderBracket();
+    try {
+        const { data } = await supabaseClient
+            .from("user_brackets")
+            .select("selections")
+            .eq("user_id", currentUser.id)
+            .single();
+
+        if (data?.selections) {
+            selections = data.selections;
+        } else {
+            selections = {};
+        }
+        renderBracket();
+    } catch (e) {
+        selections = {};
+        renderBracket();
+    }
 }
 
+// 自动保存到云端（每次选队伍都会触发）
 async function saveUserBracket(){
-    if(!currentUser) return;
-    await supabaseClient.from("user_brackets").upsert({
-        user_id: currentUser.id, selections: selections
-    }, { onConflict: "user_id" });
+    if (!currentUser) return;
+    try {
+        await supabaseClient
+            .from("user_brackets")
+            .upsert([
+                { user_id: currentUser.id, selections: selections }
+            ], { onConflict: 'user_id' });
+    } catch (err) {
+        console.error("保存失败", err);
+    }
 }
 
+// 球队数据
 const westTeams = [
     { seed:1, name:'俄克拉荷马城雷霆', abbr:'OKC', color:'#007AC1', w:64, l:18, pct:'.780' },
     { seed:2, name:'圣安东尼奥马刺', abbr:'SAS', color:'#C4CED4', w:62, l:20, pct:'.756' },
@@ -345,8 +384,8 @@ const eastTeams = [
     { seed:15, name:'华盛顿奇才', abbr:'WAS', color:'#002B5C', w:17, l:65, pct:'.207' },
 ];
 
-const west8 = westTeams.slice(0, 8);
-const east8 = eastTeams.slice(0, 8);
+const west8 = westTeams.slice(0,8);
+const east8 = eastTeams.slice(0,8);
 
 function mid(conf, round, m) { return conf + 'R' + round + 'M' + m; }
 
@@ -363,11 +402,11 @@ function getMatchups(conf, round) {
         if (!s) return null;
         winners.push(s === 'H' ? prev[i][0] : prev[i][1]);
     }
-    const result = [];
+    const res = [];
     for (let i = 0; i < winners.length; i += 2) {
-        if (i + 1 < winners.length) result.push([winners[i], winners[i+1]]);
+        if (i + 1 < winners.length) res.push([winners[i], winners[i+1]]);
     }
-    return result;
+    return res;
 }
 
 function getFinalsTeams() {
@@ -378,223 +417,206 @@ function getFinalsTeams() {
     return [ws === 'H' ? w[0][0] : w[0][1], es === 'H' ? e[0][0] : e[0][1]];
 }
 
-function teamHTML(team, matchId, side, sel) {
-    const isSel = sel === side;
-    const isElim = sel && !isSel;
-    const cls = isSel ? 'selected' : (isElim ? 'eliminated' : '');
-    return '<div class="team-row ' + cls + '" onclick="pick(\'' + matchId + '\',\'' + side + '\')">' +
-        '<span class="seed-badge">' + team.seed + '</span>' +
-        '<span class="team-dot" style="background:' + team.color + '"></span>' +
-        '<span class="tname">' + team.name + '</span>' +
-        '<span class="trecord">' + team.w + '-' + team.l + '</span>' +
-        '<span class="win-check">✓</span></div>';
+function teamHTML(team, matchId, side) {
+    const isSel = selections[matchId] === side;
+    let cls = 'team-row';
+    if (isSel) cls += ' selected';
+    return `<div class="${cls}" onclick="pick('${matchId}','${side}')">
+        <span class="seed-badge">${team.seed}</span>
+        <span class="team-dot" style="background:${team.color}"></span>
+        <span class="tname">${team.name}</span>
+        <span class="trecord">${team.w}-${team.l}</span>
+        <span class="win-check">✓</span>
+    </div>`;
 }
 
-function emptyHTML() {
-    return '<div class="team-row empty">' +
-        '<span class="seed-badge">?</span>' +
-        '<span class="team-dot" style="background:#333"></span>' +
-        '<span class="tname" style="color:#555">待定</span>' +
-        '<span class="trecord">-</span>' +
-        '<span class="win-check"></span></div>';
+function emptyTeamHTML() {
+    return `<div class="team-row empty">
+        <span class="seed-badge">?</span>
+        <span class="team-dot" style="background:#333"></span>
+        <span class="tname">等待胜者</span>
+        <span class="trecord">-</span>
+    </div>`;
 }
 
-function matchupHTML(pair, matchId, sel) {
-    return '<div class="matchup">' +
-        teamHTML(pair[0], matchId, 'H', sel) +
-        teamHTML(pair[1], matchId, 'L', sel) +
-        '</div>';
+function matchupHTML(pair, matchId) {
+    let html = '<div class="matchup">';
+    html += teamHTML(pair[0], matchId, 'H');
+    html += teamHTML(pair[1], matchId, 'L');
+    html += '</div>';
+    return html;
 }
 
 function emptyMatchupHTML() {
-    return '<div class="matchup">' + emptyHTML() + emptyHTML() + '</div>';
+    return `<div class="matchup">${emptyTeamHTML()}${emptyTeamHTML()}</div>`;
 }
 
 function roundLabel(r) {
-    return r === 1 ? '首轮' : r === 2 ? '半决赛' : '分区决赛';
+    return r===1 ? '首轮' : r===2 ? '半决赛' : '分区决赛';
 }
 
 function renderBracket() {
     const el = document.getElementById('bracket-main');
-    let h = '';
+    let html = '';
 
-    h += '<div class="conf-side west">';
-    h += '<div class="conf-label west">WEST</div>';
+    html += '<div class="conf-side west"><div class="conf-label west">西部</div>';
     for (let r = 1; r <= 3; r++) {
-        h += '<div class="conn"><div class="conn-line"></div></div>';
-        const mc = r === 1 ? 4 : r === 2 ? 2 : 1;
-        h += '<div class="round-col r' + r + '">';
-        h += '<div class="round-label">' + roundLabel(r) + '</div>';
-        const matchups = getMatchups('W', r);
-        for (let m = 0; m < mc; m++) {
-            const mId = mid('W', r, m);
-            const sel = selections[mId];
-            if (matchups && matchups[m]) {
-                h += matchupHTML(matchups[m], mId, sel);
+        html += '<div class="conn"><div class="conn-line"></div></div>';
+        html += `<div class="round-col r${r}"><div class="round-label">${roundLabel(r)}</div>`;
+        const ms = getMatchups('W', r);
+        const cnt = r===1 ? 4 : r===2 ? 2 : 1;
+        for (let i = 0; i < cnt; i++) {
+            const midKey = mid('W', r, i);
+            if (ms && ms[i]) {
+                html += matchupHTML(ms[i], midKey);
             } else {
-                h += emptyMatchupHTML();
+                html += emptyMatchupHTML();
             }
         }
-        h += '</div>';
+        html += '</div>';
     }
-    h += '</div>';
+    html += '</div>';
 
     const ft = getFinalsTeams();
-    const fs = selections['FINALS'];
-    h += '<div class="finals-zone">';
-    h += '<div class="conn"><div class="conn-line"></div></div>';
-    h += '<div class="finals-card ' + (fs ? 'complete' : '') + '">';
-    h += '<div class="finals-header">🏆 NBA FINALS</div>';
+    const fsSel = selections['FINALS'];
+    html += '<div class="finals-zone"><div class="conn"><div class="conn-line"></div></div>';
+    html += `<div class="finals-card ${fsSel ? 'complete' : ''}">
+        <div class="finals-header">NBA 总决赛</div>`;
     if (ft) {
-        const wSel = fs === 'H', eSel = fs === 'L';
-        h += '<div class="finals-team ' + (wSel ? 'selected' : (fs ? 'eliminated' : '')) + '" onclick="pickFinals(\'H\')">';
-        h += '<span class="team-dot" style="background:' + ft[0].color + '"></span>';
-        h += '<span class="tname">' + ft[0].name + '</span>';
-        h += '<span class="win-check">👑</span></div>';
-        h += '<div class="finals-vs">VS</div>';
-        h += '<div class="finals-team ' + (eSel ? 'selected' : (fs ? 'eliminated' : '')) + '" onclick="pickFinals(\'L\')">';
-        h += '<span class="team-dot" style="background:' + ft[1].color + '"></span>';
-        h += '<span class="tname">' + ft[1].name + '</span>';
-        h += '<span class="win-check">👑</span></div>';
+        const wCls = fsSel==='W' ? 'finals-team selected' : 'finals-team';
+        const eCls = fsSel==='E' ? 'finals-team selected' : 'finals-team';
+        html += `<div class="${wCls}" onclick="pickFinals('W')">
+            <span class="team-dot" style="background:${ft[0].color}"></span>
+            <span class="tname">${ft[0].name}</span>
+            <span class="win-check">👑</span>
+        </div>
+        <div class="finals-vs">VS</div>
+        <div class="${eCls}" onclick="pickFinals('E')">
+            <span class="team-dot" style="background:${ft[1].color}"></span>
+            <span class="tname">${ft[1].name}</span>
+            <span class="win-check">👑</span>
+        </div>`;
     } else {
-        h += '<div class="finals-team empty"><span class="tname" style="color:#555">等待西部冠军</span></div>';
-        h += '<div class="finals-vs">VS</div>';
-        h += '<div class="finals-team empty"><span class="tname" style="color:#555">等待东部冠军</span></div>';
+        html += `${emptyTeamHTML()}<div class="finals-vs">VS</div>${emptyTeamHTML()}`;
     }
-    h += '</div></div>';
+    html += '</div></div>';
 
-    h += '<div class="conf-side east">';
+    html += '<div class="conf-side east"><div class="conf-label east">东部</div>';
     for (let r = 1; r <= 3; r++) {
-        const mc = r === 1 ? 4 : r === 2 ? 2 : 1;
-        h += '<div class="round-col r' + r + '">';
-        h += '<div class="round-label">' + roundLabel(r) + '</div>';
-        const matchups = getMatchups('E', r);
-        for (let m = 0; m < mc; m++) {
-            const mId = mid('E', r, m);
-            const sel = selections[mId];
-            if (matchups && matchups[m]) {
-                h += matchupHTML(matchups[m], mId, sel);
+        html += '<div class="conn"><div class="conn-line"></div></div>';
+        html += `<div class="round-col r${r}"><div class="round-label">${roundLabel(r)}</div>`;
+        const ms = getMatchups('E', r);
+        const cnt = r===1 ? 4 : r===2 ? 2 : 1;
+        for (let i = 0; i < cnt; i++) {
+            const midKey = mid('E', r, i);
+            if (ms && ms[i]) {
+                html += matchupHTML(ms[i], midKey);
             } else {
-                h += emptyMatchupHTML();
+                html += emptyMatchupHTML();
             }
         }
-        h += '</div>';
-        h += '<div class="conn"><div class="conn-line"></div></div>';
+        html += '</div>';
     }
-    h += '<div class="conf-label east">EAST</div>';
-    h += '</div>';
+    html += '</div>';
 
-    el.innerHTML = h;
+    el.innerHTML = html;
     updateProgress();
 }
 
+// 选队伍 - 选完自动保存
 function pick(matchId, side) {
     if (selections[matchId] === side) {
         delete selections[matchId];
     } else {
         selections[matchId] = side;
     }
-    const parts = matchId.match(/^(W|R|E)R(\d)M(\d)$/);
-    if (parts) {
-        const conf = parts[1];
-        const round = parseInt(parts[2]);
-        for (let r = round + 1; r <= 3; r++) {
-            const mc = r === 2 ? 2 : 1;
-            for (let m = 0; m < mc; m++) delete selections[mid(conf, r, m)];
-        }
-        delete selections['FINALS'];
-    }
     renderBracket();
     saveUserBracket();
 }
 
+// 选总冠军 - 选完自动保存
 function pickFinals(side) {
     if (selections['FINALS'] === side) {
         delete selections['FINALS'];
-        renderBracket();
     } else {
         selections['FINALS'] = side;
-        renderBracket();
-        saveUserBracket();
-        setTimeout(showChampion, 300);
+    }
+    renderBracket();
+    saveUserBracket();
+
+    const ft = getFinalsTeams();
+    if (ft) {
+        const champ = side==='W' ? ft[0] : ft[1];
+        document.getElementById('champion-name').innerText = champ.name;
+        document.getElementById('champion-detail').innerText = `${champ.abbr} · ${champ.w}胜${champ.l}负`;
+        document.getElementById('champion-reveal').classList.add('show');
+        createConfetti();
     }
 }
 
+// 重置所有预测
 function resetBracket() {
+    if (!confirm('确定要清空所有预测吗？不可恢复！')) return;
     selections = {};
     renderBracket();
     saveUserBracket();
+}
+
+function closeChampion() {
     document.getElementById('champion-reveal').classList.remove('show');
+    document.getElementById('confetti-container').innerHTML = '';
+}
+
+function createConfetti() {
+    const container = document.getElementById('confetti-container');
+    const colors = ['#ffd700','#c9082a','#17408b','#ff4d6a','#4ade80','#fff'];
+    for (let i = 0; i < 120; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti';
+        el.style.left = Math.random()*100 + '%';
+        el.style.width = (Math.random()*8+4) + 'px';
+        el.style.height = (Math.random()*8+4) + 'px';
+        el.style.background = colors[Math.floor(Math.random()*colors.length)];
+        el.style.animationDuration = (Math.random()*3+2) + 's';
+        container.appendChild(el);
+    }
 }
 
 function updateProgress() {
     const total = 15;
     const done = Object.keys(selections).length;
-    document.getElementById('progress-text').textContent = '预测进度: ' + done + ' / ' + total;
-    document.getElementById('progress-fill').style.width = Math.round(done/total*100) + '%';
-}
-
-function showChampion() {
-    const ft = getFinalsTeams();
-    if (!ft) return;
-    const fs = selections['FINALS'];
-    if (!fs) return;
-    const champ = fs === 'H' ? ft[0] : ft[1];
-    document.getElementById('champion-name').textContent = champ.name;
-    document.getElementById('champion-detail').textContent = champ.abbr + ' · ' + champ.w + '胜' + champ.l + '负';
-    document.getElementById('champion-reveal').classList.add('show');
-    launchConfetti();
-}
-
-function closeChampion() {
-    document.getElementById('champion-reveal').classList.remove('show');
-}
-
-function launchConfetti() {
-    const c = document.getElementById('confetti-container');
-    c.innerHTML = '';
-    const colors = ['#ffd700','#c9082a','#17408b','#ff4d6a','#4ade80','#fff','#ff8c00'];
-    for (let i = 0; i < 120; i++) {
-        const el = document.createElement('div');
-        el.className = 'confetti';
-        el.style.left = Math.random()*100 + '%';
-        el.style.background = colors[Math.floor(Math.random()*colors.length)];
-        el.style.width = (Math.random()*10+5) + 'px';
-        el.style.height = (Math.random()*10+5) + 'px';
-        el.style.borderRadius = Math.random()>0.5 ? '50%' : '2px';
-        el.style.animationDuration = (Math.random()*2+2) + 's';
-        el.style.animationDelay = (Math.random()*1.5) + 's';
-        el.style.opacity = Math.random()*0.8+0.2;
-        c.appendChild(el);
-    }
-}
-
-function renderStandings(teams, tableId) {
-    const table = document.getElementById(tableId);
-    let h = '<thead><tr><th>排名</th><th>球队</th><th>战绩</th><th>胜率</th></tr></thead><tbody>';
-    teams.forEach(function(t, i) {
-        if (i === 6) h += '<tr class="divider-playin"><td colspan="4">▸ 附加赛区域 ◂</td></tr>';
-        if (i === 8) h += '<tr class="divider-out"><td colspan="4">▸ 未进入季后赛 ◂</td></tr>';
-        const rc = t.seed <= 6 ? 'r1-6' : (t.seed <= 10 ? 'r7-10' : 'r11-15');
-        h += '<tr><td><span class="rank-badge ' + rc + '">' + t.seed + '</span></td>';
-        h += '<td><div class="team-info"><span class="team-dot-sm" style="background:' + t.color + '"></span>' + t.name + '</div></td>';
-        h += '<td style="color:#aaa">' + t.w + '-' + t.l + '</td>';
-        h += '<td class="pct">' + t.pct + '</td></tr>';
-    });
-    h += '</tbody>';
-    table.innerHTML = h;
+    document.getElementById('progress-num').innerText = done;
+    document.getElementById('progress-bar-fill').style.width = (done/total*100) + '%';
 }
 
 function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-    document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
-    if (tab === 'bracket') {
-        document.querySelectorAll('.tab')[0].classList.add('active');
-        document.getElementById('sec-bracket').classList.add('active');
-    } else {
-        document.querySelectorAll('.tab')[1].classList.add('active');
-        document.getElementById('sec-standings').classList.add('active');
-    }
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec-'+tab).classList.add('active');
+}
+
+function renderStandings(teams, tableId) {
+    const tbl = document.getElementById(tableId);
+    let html = `<thead><tr><th>排名</th><th>球队</th><th>战绩</th><th>胜率</th></tr></thead><tbody>`;
+    teams.forEach((t, idx) => {
+        let rankCls = 'rank-badge ';
+        if (t.seed <=6) rankCls += 'r1-6';
+        else if (t.seed <=10) rankCls += 'r7-10';
+        else rankCls += 'r11-15';
+
+        if (t.seed ===7) html += `<tr class="divider-playin"><td colspan="4">附加赛区域 7-10名</td></tr>`;
+        if (t.seed ===11) html += `<tr class="divider-out"><td colspan="4">无缘季后赛</td></tr>`;
+
+        html += `<tr>
+            <td><span class="${rankCls}">${t.seed}</span></td>
+            <td><div class="team-info"><span class="team-dot-sm" style="background:${t.color}"></span>${t.name}</div></td>
+            <td style="color:#aaa">${t.w}-${t.l}</td>
+            <td class="pct">${t.pct}</td>
+        </tr>`;
+    });
+    html += '</tbody>';
+    tbl.innerHTML = html;
 }
 
 renderStandings(westTeams, 'west-table');
