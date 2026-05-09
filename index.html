@@ -4,52 +4,194 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NBA预测 - 登录</title>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{background:#0a0a0f;color:#fff;font-family:Arial;height:100vh;display:flex;align-items:center;justify-content:center;}
-        .login-box{width:340px;background:#121217;padding:35px 25px;border-radius:14px;border:1px solid #2a2a2f;text-align:center;}
-        h2{color:#c9082a;margin-bottom:20px;}
-        input{width:100%;padding:12px;margin:8px 0;background:#1a1a22;border:1px solid #333;border-radius:8px;color:#fff;font-size:15px;}
-        button{width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;font-size:15px;cursor:pointer;}
-        .btn-register{background:#c9082a;color:white;}
-        .btn-login{background:#17408b;color:white;}
-        .tip{color:#777;margin-top:15px;font-size:13px;}
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            background:#0a0a0f;
+            color:#fff;
+            font-family:Arial;
+            height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .login-box{
+            width:340px;
+            background:#121217;
+            padding:35px 25px;
+            border-radius:14px;
+            border:1px solid #2a2a2f;
+            text-align:center;
+        }
+
+        h2{
+            color:#c9082a;
+            margin-bottom:20px;
+        }
+
+        input{
+            width:100%;
+            padding:12px;
+            margin:8px 0;
+            background:#1a1a22;
+            border:1px solid #333;
+            border-radius:8px;
+            color:#fff;
+            font-size:15px;
+        }
+
+        button{
+            width:100%;
+            padding:12px;
+            margin:8px 0;
+            border:none;
+            border-radius:8px;
+            font-size:15px;
+            cursor:pointer;
+        }
+
+        .btn-register{
+            background:#c9082a;
+            color:white;
+        }
+
+        .btn-login{
+            background:#17408b;
+            color:white;
+        }
+
+        .tip{
+            color:#777;
+            margin-top:15px;
+            font-size:13px;
+        }
+
     </style>
 </head>
+
 <body>
+
 <div class="login-box">
+
     <h2>NBA 季后赛预测</h2>
+
     <input type="email" id="email" placeholder="邮箱">
+
     <input type="password" id="pwd" placeholder="密码">
-    <button class="btn-register" onclick="register()">注册账号</button>
-    <button class="btn-login" onclick="login()">立即登录</button>
-    <div class="tip">登录后自动保存你的专属预测数据</div>
+
+    <button class="btn-register" onclick="register()">
+        注册账号
+    </button>
+
+    <button class="btn-login" onclick="login()">
+        立即登录
+    </button>
+
+    <div class="tip">
+        登录后自动保存你的专属预测数据
+    </div>
+
 </div>
 
 <script>
-const SUPABASE_URL = "https://mqgmvpwweqviwyccjmdj.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZ212cHd3ZXF2aXd5Y2NqbWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODk2NjEsImV4cCI6MjA5Mzg2NTY2MX0.pV6r_eG865nEJv83-p-0bWkW3H5_jgowAsjgH1s7rAU";
 
-const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL =
+"https://mqgmvpwweqviwyccjmdj.supabase.co";
 
-client.auth.onAuthStateChange((e, sess) => {
-    if(sess) location.href = "bracket.html";
+const SUPABASE_KEY =
+"你的KEY";
+
+const client =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+// 已登录直接跳转
+document.addEventListener('DOMContentLoaded', async ()=>{
+
+    const { data } =
+    await client.auth.getSession();
+
+    if(data.session){
+        location.href = "bracket.html";
+    }
+
 });
 
+// 注册
 async function register(){
-    const email = document.getElementById("email").value;
-    const pwd = document.getElementById("pwd").value;
-    const { error } = await client.auth.signUp({ email, password: pwd });
-    alert(error ? "注册失败："+error.message : "注册成功！请登录");
+
+    const email =
+    document.getElementById("email").value;
+
+    const pwd =
+    document.getElementById("pwd").value;
+
+    if(!email || !pwd){
+        alert("请输入邮箱和密码");
+        return;
+    }
+
+    const { error } =
+    await client.auth.signUp({
+
+        email,
+        password: pwd
+
+    });
+
+    if(error){
+
+        alert("注册失败：" + error.message);
+
+    }else{
+
+        alert("注册成功，请检查邮箱验证后登录");
+
+    }
+
 }
 
+// 登录
 async function login(){
-    const email = document.getElementById("email").value;
-    const pwd = document.getElementById("pwd").value;
-    const { error } = await client.auth.signInWithPassword({ email, password: pwd });
-    if(error) alert("登录失败："+error.message);
+
+    const email =
+    document.getElementById("email").value;
+
+    const pwd =
+    document.getElementById("pwd").value;
+
+    const { error } =
+    await client.auth.signInWithPassword({
+
+        email,
+        password: pwd
+
+    });
+
+    if(error){
+
+        alert("登录失败：" + error.message);
+
+    }else{
+
+        location.href = "bracket.html";
+
+    }
+
 }
+
 </script>
+
 </body>
 </html>
