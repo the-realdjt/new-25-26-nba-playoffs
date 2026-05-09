@@ -294,103 +294,60 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let selections = {};
 
-// 页面加载先检测登录状态 + 自动加载历史预测
+// 页面加载：自动检查登录 + 自动加载预测
 document.addEventListener('DOMContentLoaded', async () => {
-    // 使用session模式，关闭浏览器后登录状态失效
-    await supabaseClient.auth.setPersistence('session');
+    const { data: { user } } = await supabaseClient.auth.getUser();
     
-    // 获取当前会话状态
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
-    
-    // 如果没有登录或者session无效，跳转到登录页面
-    if (!session || !session.user) {
-        await supabaseClient.auth.signOut();
+    if (!user) {
         location.href = "index.html";
         return;
     }
-    
-    currentUser = session.user;
-    console.log("当前用户:", currentUser.email);
-    
-    // 加载用户之前的预测数据
+
+    currentUser = user;
     await loadUserBracket();
+    renderBracket();
 });
 
 // 退出登录
-async function logout(){
-    try {
-        await supabaseClient.auth.signOut();
-        localStorage.removeItem('supabase.auth.token');
-        localStorage.removeItem('supabase.auth.refreshToken');
-        location.href = "index.html";
-    } catch (err) {
-        console.error("退出登录失败:", err);
-        location.href = "index.html";
-    }
+async function logout() {
+    await supabaseClient.auth.signOut();
+    location.href = "index.html";
 }
 
-// 从数据库加载历史预测
-async function loadUserBracket(){
-    if (!currentUser) return;
-    
+// 从云端加载预测
+async function loadUserBracket() {
     try {
         const { data, error } = await supabaseClient
             .from("user_brackets")
             .select("selections")
             .eq("user_id", currentUser.id)
-            .single();
+            .maybeSingle();
 
-        if (error) {
-            console.log("用户首次使用，无历史数据:", error.message);
-            selections = {};
-        } else if (data?.selections) {
-            // 兼容字符串和对象格式
-            if (typeof data.selections === 'string') {
-                try {
-                    selections = JSON.parse(data.selections);
-                } catch {
-                    selections = {};
-                }
-            } else if (typeof data.selections === 'object') {
-                selections = data.selections;
-            } else {
+        if (data?.selections) {
+            try {
+                selections = JSON.parse(data.selections);
+            } catch {
                 selections = {};
             }
-            console.log("已加载历史预测数据:", selections);
         } else {
             selections = {};
         }
-        renderBracket();
     } catch (e) {
-        console.error("加载预测数据失败:", e);
         selections = {};
-        renderBracket();
     }
 }
 
-// 自动保存到云端（每次选队伍都会触发）
-async function saveUserBracket(){
+// 实时云端保存
+async function saveUserBracket() {
     if (!currentUser) return;
-    
     try {
-        const { error } = await supabaseClient
+        await supabaseClient
             .from("user_brackets")
-            .upsert([
-                { 
-                    user_id: currentUser.id, 
-                    selections: JSON.stringify(selections),
-                    updated_at: new Date().toISOString()
-                }
-            ], { onConflict: 'user_id' });
-
-        if (error) {
-            console.error("保存失败:", error);
-        } else {
-            console.log("预测数据已保存到Supabase");
-        }
-    } catch (err) {
-        console.error("保存失败（异常）:", err);
-    }
+            .upsert({
+                user_id: currentUser.id,
+                selections: JSON.stringify(selections)
+            }, { onConflict: "user_id" });
+    } catch (err) {}
 }
 
 // 球队数据
@@ -403,13 +360,6 @@ const westTeams = [
     { seed:6, name:'明尼苏达森林狼', abbr:'MIN', color:'#0C2340', w:49, l:33, pct:'.598' },
     { seed:7, name:'波特兰开拓者', abbr:'POR', color:'#E03A3E', w:42, l:40, pct:'.512' },
     { seed:8, name:'菲尼克斯太阳', abbr:'PHX', color:'#1D1160', w:45, l:37, pct:'.549' },
-    { seed:9, name:'洛杉矶快船', abbr:'LAC', color:'#C8102E', w:42, l:40, pct:'.512' },
-    { seed:10, name:'金州勇士', abbr:'GSW', color:'#1D428A', w:37, l:45, pct:'.451' },
-    { seed:11, name:'新奥尔良鹈鹕', abbr:'NOP', color:'#0C2340', w:26, l:56, pct:'.317' },
-    { seed:12, name:'达拉斯独行侠', abbr:'DAL', color:'#00538C', w:26, l:56, pct:'.317' },
-    { seed:13, name:'孟菲斯灰熊', abbr:'MEM', color:'#5D76A9', w:25, l:57, pct:'.305' },
-    { seed:14, name:'萨克拉门托国王', abbr:'SAC', color:'#5A2D81', w:22, l:60, pct:'.268' },
-    { seed:15, name:'犹他爵士', abbr:'UTA', color:'#002B5C', w:22, l:60, pct:'.268' },
 ];
 const eastTeams = [
     { seed:1, name:'底特律活塞', abbr:'DET', color:'#C8102E', w:60, l:22, pct:'.732' },
@@ -420,72 +370,43 @@ const eastTeams = [
     { seed:6, name:'亚特兰大老鹰', abbr:'ATL', color:'#E03A3E', w:46, l:36, pct:'.561' },
     { seed:7, name:'费城76人', abbr:'PHI', color:'#006BB6', w:45, l:37, pct:'.549' },
     { seed:8, name:'奥兰多魔术', abbr:'ORL', color:'#0077C0', w:45, l:37, pct:'.549' },
-    { seed:9, name:'夏洛特黄蜂', abbr:'CHA', color:'#1D1160', w:44, l:38, pct:'.537' },
-    { seed:10, name:'迈阿密热火', abbr:'MIA', color:'#98002E', w:43, l:39, pct:'.524' },
-    { seed:11, name:'密尔沃基雄鹿', abbr:'MIL', color:'#00471B', w:32, l:50, pct:'.390' },
-    { seed:12, name:'芝加哥公牛', abbr:'CHI', color:'#CE1141', w:31, l:51, pct:'.378' },
-    { seed:13, name:'布鲁克林篮网', abbr:'BKN', color:'#000000', w:20, l:62, pct:'.244' },
-    { seed:14, name:'印第安纳步行者', abbr:'IND', color:'#002D62', w:19, l:63, pct:'.232' },
-    { seed:15, name:'华盛顿奇才', abbr:'WAS', color:'#002B5C', w:17, l:65, pct:'.207' },
 ];
 
-const west8 = westTeams.slice(0,8);
-const east8 = eastTeams.slice(0,8);
+const west8 = westTeams;
+const east8 = eastTeams;
 
-// 生成matchup的唯一ID
 function mid(conf, round, m) { return conf + 'R' + round + 'M' + m; }
 
-// 获取某一轮的对阵信息
 function getMatchups(conf, round) {
     const t = conf === 'W' ? west8 : east8;
-    
-    // 第一轮：直接返回固定对阵
     if (round === 1) {
-        return [[t[0],t[7]], [t[1],t[6]], [t[2],t[5]], [t[3],t[4]]];
+        return [[t[0], t[7]], [t[1], t[6]], [t[2], t[5]], [t[3], t[4]]];
     }
-    
-    // 获取上一轮的对阵
     const prev = getMatchups(conf, round - 1);
     if (!prev) return [];
-    
-    // 根据上一轮的选择确定胜者
     const winners = [];
     for (let i = 0; i < prev.length; i++) {
-        const s = selections[mid(conf, round-1, i)];
-        if (s) {
-            winners.push(s === 'H' ? prev[i][0] : prev[i][1]);
-        } else {
-            // 如果没有选择，返回空数组（表示此轮不可用）
-            return [];
-        }
+        const s = selections[mid(conf, round - 1, i)];
+        if (!s) return [];
+        winners.push(s === 'H' ? prev[i][0] : prev[i][1]);
     }
-    
-    // 生成当前轮的对阵
     const res = [];
     for (let i = 0; i < winners.length; i += 2) {
-        if (i + 1 < winners.length) {
-            res.push([winners[i], winners[i+1]]);
-        }
+        if (i + 1 < winners.length) res.push([winners[i], winners[i + 1]]);
     }
     return res;
 }
 
-// 获取总决赛队伍
 function getFinalsTeams() {
     const w = getMatchups('W', 3);
     const e = getMatchups('E', 3);
-    
     if (!w || !e || w.length === 0 || e.length === 0) return null;
-    
     const ws = selections[mid('W', 3, 0)];
     const es = selections[mid('E', 3, 0)];
-    
     if (!ws || !es) return null;
-    
     return [ws === 'H' ? w[0][0] : w[0][1], es === 'H' ? e[0][0] : e[0][1]];
 }
 
-// 生成球队HTML
 function teamHTML(team, matchId, side) {
     const isSel = selections[matchId] === side;
     let cls = 'team-row';
@@ -499,7 +420,6 @@ function teamHTML(team, matchId, side) {
     </div>`;
 }
 
-// 生成空球队HTML
 function emptyTeamHTML() {
     return `<div class="team-row empty">
         <span class="seed-badge">?</span>
@@ -509,7 +429,6 @@ function emptyTeamHTML() {
     </div>`;
 }
 
-// 生成对阵HTML
 function matchupHTML(pair, matchId) {
     let html = '<div class="matchup">';
     html += teamHTML(pair[0], matchId, 'H');
@@ -518,34 +437,28 @@ function matchupHTML(pair, matchId) {
     return html;
 }
 
-// 生成空对阵HTML
 function emptyMatchupHTML() {
     return `<div class="matchup">${emptyTeamHTML()}${emptyTeamHTML()}</div>`;
 }
 
-// 轮次标签
 function roundLabel(r) {
-    return r===1 ? '首轮' : r===2 ? '半决赛' : '分区决赛';
+    return r === 1 ? '首轮' : r === 2 ? '半决赛' : '分区决赛';
 }
 
-// 渲染对阵图
 function renderBracket() {
     const el = document.getElementById('bracket-main');
     let html = '';
 
-    // 渲染西部
     html += '<div class="conf-side west"><div class="conf-label west">西部</div>';
     for (let r = 1; r <= 3; r++) {
         html += '<div class="conn"><div class="conn-line"></div></div>';
         html += `<div class="round-col r${r}"><div class="round-label">${roundLabel(r)}</div>`;
         const ms = getMatchups('W', r);
         const cnt = r === 1 ? 4 : r === 2 ? 2 : 1;
-        
         for (let i = 0; i < cnt; i++) {
             const midKey = mid('W', r, i);
-            // 第一轮总是显示，其他轮需要有上一轮的选择才显示
-            if (r === 1 || (ms && ms[i])) {
-                html += matchupHTML(ms && ms[i] ? ms[i] : [], midKey);
+            if (ms && ms[i]) {
+                html += matchupHTML(ms[i], midKey);
             } else {
                 html += emptyMatchupHTML();
             }
@@ -554,13 +467,11 @@ function renderBracket() {
     }
     html += '</div>';
 
-    // 渲染总决赛区域
     const ft = getFinalsTeams();
     const fsSel = selections['FINALS'];
     html += '<div class="finals-zone"><div class="conn"><div class="conn-line"></div></div>';
     html += `<div class="finals-card ${fsSel ? 'complete' : ''}">
         <div class="finals-header">NBA 总决赛</div>`;
-    
     if (ft) {
         const wCls = fsSel === 'W' ? 'finals-team selected' : 'finals-team';
         const eCls = fsSel === 'E' ? 'finals-team selected' : 'finals-team';
@@ -580,19 +491,16 @@ function renderBracket() {
     }
     html += '</div></div>';
 
-    // 渲染东部
     html += '<div class="conf-side east"><div class="conf-label east">东部</div>';
     for (let r = 1; r <= 3; r++) {
         html += '<div class="conn"><div class="conn-line"></div></div>';
         html += `<div class="round-col r${r}"><div class="round-label">${roundLabel(r)}</div>`;
         const ms = getMatchups('E', r);
         const cnt = r === 1 ? 4 : r === 2 ? 2 : 1;
-        
         for (let i = 0; i < cnt; i++) {
             const midKey = mid('E', r, i);
-            // 第一轮总是显示，其他轮需要有上一轮的选择才显示
-            if (r === 1 || (ms && ms[i])) {
-                html += matchupHTML(ms && ms[i] ? ms[i] : [], midKey);
+            if (ms && ms[i]) {
+                html += matchupHTML(ms[i], midKey);
             } else {
                 html += emptyMatchupHTML();
             }
@@ -605,7 +513,6 @@ function renderBracket() {
     updateProgress();
 }
 
-// 选队伍 - 选完自动保存到Supabase
 function pick(matchId, side) {
     if (selections[matchId] === side) {
         delete selections[matchId];
@@ -616,65 +523,38 @@ function pick(matchId, side) {
     saveUserBracket();
 }
 
-// 选总冠军 - 选完自动保存到Supabase
 function pickFinals(side) {
-    if (selections['FINALS'] === side) {
-        delete selections['FINALS'];
-    } else {
-        selections['FINALS'] = side;
-    }
+    selections['FINALS'] = side;
     renderBracket();
     saveUserBracket();
 
     const ft = getFinalsTeams();
-    if (ft && selections['FINALS']) {
+    if (ft) {
         const champ = side === 'W' ? ft[0] : ft[1];
         document.getElementById('champion-name').innerText = champ.name;
         document.getElementById('champion-detail').innerText = `${champ.abbr} · ${champ.w}胜${champ.l}负`;
         document.getElementById('champion-reveal').classList.add('show');
-        createConfetti();
     }
 }
 
-// 重置所有预测（登录状态下可用）
+// 登录状态下重置预测
 function resetBracket() {
     if (!confirm('确定要清空所有预测吗？不可恢复！')) return;
-    
     selections = {};
     renderBracket();
     saveUserBracket();
-    
-    // 关闭总冠军弹窗（如果打开）
-    closeChampion();
-    
-    console.log("预测已重置");
 }
 
 function closeChampion() {
     document.getElementById('champion-reveal').classList.remove('show');
-    document.getElementById('confetti-container').innerHTML = '';
 }
 
-function createConfetti() {
-    const container = document.getElementById('confetti-container');
-    const colors = ['#ffd700','#c9082a','#17408b','#ff4d6a','#4ade80','#fff'];
-    for (let i = 0; i < 120; i++) {
-        const el = document.createElement('div');
-        el.className = 'confetti';
-        el.style.left = Math.random()*100 + '%';
-        el.style.width = (Math.random()*8+4) + 'px';
-        el.style.height = (Math.random()*8+4) + 'px';
-        el.style.background = colors[Math.floor(Math.random()*colors.length)];
-        el.style.animationDuration = (Math.random()*3+2) + 's';
-        container.appendChild(el);
-    }
-}
-
+function createConfetti() {}
 function updateProgress() {
     const total = 15;
     const done = Object.keys(selections).length;
     document.getElementById('progress-num').innerText = done;
-    document.getElementById('progress-bar-fill').style.width = (done/total*100) + '%';
+    document.getElementById('progress-bar-fill').style.width = (done / total * 100) + '%';
 }
 
 function switchTab(tab) {
@@ -687,15 +567,8 @@ function switchTab(tab) {
 function renderStandings(teams, tableId) {
     const tbl = document.getElementById(tableId);
     let html = `<thead><tr><th>排名</th><th>球队</th><th>战绩</th><th>胜率</th></tr></thead><tbody>`;
-    teams.forEach((t, idx) => {
-        let rankCls = 'rank-badge ';
-        if (t.seed <= 6) rankCls += 'r1-6';
-        else if (t.seed <= 10) rankCls += 'r7-10';
-        else rankCls += 'r11-15';
-
-        if (t.seed === 7) html += `<tr class="divider-playin"><td colspan="4">附加赛区域 7-10名</td></tr>`;
-        if (t.seed === 11) html += `<tr class="divider-out"><td colspan="4">无缘季后赛</td></tr>`;
-
+    teams.forEach(t => {
+        let rankCls = 'rank-badge ' + (t.seed <= 6 ? 'r1-6' : t.seed <= 10 ? 'r7-10' : 'r11-15');
         html += `<tr>
             <td><span class="${rankCls}">${t.seed}</span></td>
             <td><div class="team-info"><span class="team-dot-sm" style="background:${t.color}"></span>${t.name}</div></td>
@@ -703,11 +576,9 @@ function renderStandings(teams, tableId) {
             <td class="pct">${t.pct}</td>
         </tr>`;
     });
-    html += '</tbody>';
     tbl.innerHTML = html;
 }
 
-// 渲染常规赛排名
 renderStandings(westTeams, 'west-table');
 renderStandings(eastTeams, 'east-table');
 </script>
