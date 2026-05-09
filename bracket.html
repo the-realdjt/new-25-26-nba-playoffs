@@ -109,13 +109,7 @@ h1{
     font-family:'Orbitron',sans-serif;
     font-size:2rem;
     letter-spacing:3px;
-
-    background:linear-gradient(
-        135deg,
-        #fff,
-        #c9082a
-    );
-
+    background:linear-gradient(135deg,#fff,#c9082a);
     -webkit-background-clip:text;
     -webkit-text-fill-color:transparent;
 }
@@ -130,15 +124,8 @@ h1{
     margin-top:12px;
     padding:6px 20px;
     border-radius:20px;
-
-    background:linear-gradient(
-        135deg,
-        rgba(201,8,42,.15),
-        rgba(23,64,139,.15)
-    );
-
+    background:linear-gradient(135deg,rgba(201,8,42,.15),rgba(23,64,139,.15));
     border:1px solid rgba(201,8,42,.25);
-
     font-size:.8rem;
     color:#aaa;
 }
@@ -207,11 +194,7 @@ h1{
     height:100%;
     width:0%;
     transition:.35s;
-    background:linear-gradient(
-        90deg,
-        #c9082a,
-        #ffd700
-    );
+    background:linear-gradient(90deg,#c9082a,#ffd700);
 }
 
 .bracket-wrapper{
@@ -239,10 +222,8 @@ h1{
 .conf-label{
     writing-mode:vertical-rl;
     text-orientation:mixed;
-
     padding:8px 14px;
     border-radius:20px;
-
     font-size:.7rem;
     letter-spacing:3px;
     font-family:'Orbitron',sans-serif;
@@ -262,17 +243,9 @@ h1{
     justify-content:center;
 }
 
-.round-col.r1{
-    gap:14px;
-}
-
-.round-col.r2{
-    gap:54px;
-}
-
-.round-col.r3{
-    gap:120px;
-}
+.round-col.r1{gap:14px;}
+.round-col.r2{gap:54px;}
+.round-col.r3{gap:120px;}
 
 .round-label{
     text-align:center;
@@ -297,17 +270,10 @@ h1{
 
 .matchup{
     width:220px;
-
-    background:linear-gradient(
-        145deg,
-        #131316,
-        #18181c
-    );
-
+    background:linear-gradient(145deg,#131316,#18181c);
     border:1px solid #252528;
     border-radius:12px;
     overflow:hidden;
-
     transition:.25s;
 }
 
@@ -320,12 +286,9 @@ h1{
     display:flex;
     align-items:center;
     gap:8px;
-
     padding:10px 12px;
-
     cursor:pointer;
     transition:.25s;
-
     border-left:3px solid transparent;
 }
 
@@ -351,14 +314,11 @@ h1{
     width:22px;
     height:22px;
     border-radius:4px;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     background:#222;
     color:#666;
-
     font-size:.72rem;
     font-weight:700;
 }
@@ -405,13 +365,7 @@ h1{
 
 .finals-card{
     width:240px;
-
-    background:linear-gradient(
-        145deg,
-        #131316,
-        #18181c
-    );
-
+    background:linear-gradient(145deg,#131316,#18181c);
     border:2px solid #333;
     border-radius:14px;
     overflow:hidden;
@@ -425,15 +379,8 @@ h1{
 .finals-header{
     padding:12px;
     text-align:center;
-
-    background:linear-gradient(
-        135deg,
-        #ffd700,
-        #ff8c00
-    );
-
+    background:linear-gradient(135deg,#ffd700,#ff8c00);
     color:#000;
-
     font-family:'Orbitron',sans-serif;
     font-size:.7rem;
     font-weight:700;
@@ -444,12 +391,9 @@ h1{
     display:flex;
     align-items:center;
     gap:10px;
-
     padding:16px 14px;
-
     cursor:pointer;
     transition:.25s;
-
     border-left:3px solid transparent;
 }
 
@@ -474,7 +418,7 @@ h1{
     letter-spacing:2px;
 }
 
-/* === 冠军弹窗样式（已补上） === */
+/* 冠军弹窗特效样式 */
 .champion-modal {
     position: fixed;
     top: 0;
@@ -547,19 +491,14 @@ h1{
 .reset-btn{
     display:block;
     margin:20px auto;
-
     padding:10px 30px;
-
     border-radius:8px;
     border:1px solid #333;
-
     background:transparent;
     color:#888;
-
     cursor:pointer;
     transition:.25s;
 }
-
 .reset-btn:hover{
     border-color:#c9082a;
     color:#fff;
@@ -582,200 +521,87 @@ h1{
 .conf-table-header{
     padding:16px;
     text-align:center;
-
     font-family:'Orbitron',sans-serif;
     letter-spacing:3px;
     font-weight:700;
 }
+.conf-table-header.west{background:linear-gradient(135deg,#c9082a,#e03050);}
+.conf-table-header.east{background:linear-gradient(135deg,#17408b,#1a5bc4);}
 
-.conf-table-header.west{
-    background:linear-gradient(135deg,#c9082a,#e03050);
-}
-
-.conf-table-header.east{
-    background:linear-gradient(135deg,#17408b,#1a5bc4);
-}
-
-.s-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-.s-table th{
-    padding:10px 14px;
-    text-align:left;
-    color:#666;
-    border-bottom:1px solid #1e1e22;
-    font-size:.72rem;
-}
-
-.s-table td{
-    padding:10px 14px;
-    border-bottom:1px solid #151518;
-    font-size:.85rem;
-}
+.s-table{width:100%;border-collapse:collapse;}
+.s-table th{padding:10px 14px;text-align:left;color:#666;border-bottom:1px solid #1e1e22;font-size:.72rem;}
+.s-table td{padding:10px 14px;border-bottom:1px solid #151518;font-size:.85rem;}
 
 .rank-badge{
-    width:24px;
-    height:24px;
-    border-radius:5px;
-
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-
-    font-weight:700;
-    font-size:.75rem;
+    width:24px;height:24px;border-radius:5px;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:.75rem;
 }
+.rank-badge.r1-6{background:#c9082a;}
+.rank-badge.r7-10{background:#2d5a1e;}
+.rank-badge.r11-15{background:#1d1d20;color:#666;}
 
-.rank-badge.r1-6{
-    background:#c9082a;
-}
+.team-info{display:flex;align-items:center;gap:8px;font-weight:600;}
+.team-dot-sm{width:6px;height:6px;border-radius:50%;}
 
-.rank-badge.r7-10{
-    background:#2d5a1e;
-}
-
-.rank-badge.r11-15{
-    background:#1d1d20;
-    color:#666;
-}
-
-.team-info{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-weight:600;
-}
-
-.team-dot-sm{
-    width:6px;
-    height:6px;
-    border-radius:50%;
-}
-
-.divider-playin td{
-    background:rgba(45,90,30,.08);
-    color:#4ade80;
-    text-align:center;
-    font-size:.72rem;
-}
-
-.divider-out td{
-    background:rgba(100,100,100,.05);
-    color:#555;
-    text-align:center;
-    font-size:.72rem;
-}
-
-.pct{
-    color:#c9082a;
-    font-weight:600;
-}
+.divider-playin td{background:rgba(45,90,30,.08);color:#4ade80;text-align:center;font-size:.72rem;}
+.divider-out td{background:rgba(100,100,100,.05);color:#555;text-align:center;font-size:.72rem;}
+.pct{color:#c9082a;font-weight:600;}
 
 @media(max-width:900px){
-
-    .standings-grid{
-        grid-template-columns:1fr;
-    }
-
-    h1{
-        font-size:1.4rem;
-    }
-
+    .standings-grid{grid-template-columns:1fr;}
+    h1{font-size:1.4rem;}
 }
 </style>
 </head>
 
 <body>
-
 <div class="bg-glow"></div>
-
 <div class="container">
 
 <header>
-
 <div class="logo-area">
     <div class="nba-logo">NBA</div>
     <h1>PLAYOFFS 2026</h1>
 </div>
-
-<p class="subtitle">
-    2025-26 赛季 · 季后赛预测
-</p>
-
-<div class="hint-badge">
-    👆 点击球队选择晋级 · 自动云端保存
-</div>
-
-<button class="reset-btn" onclick="logout()">
-    🚪 退出登录
-</button>
-
+<p class="subtitle">2025-26 赛季 · 季后赛预测</p>
+<div class="hint-badge">👆 点击球队选择晋级 · 自动云端保存</div>
+<button class="reset-btn" onclick="logout()">🚪 退出登录</button>
 </header>
 
 <div class="tabs">
-    <button class="tab active" onclick="switchTab(event,'bracket')">
-        季后赛对阵图
-    </button>
-
-    <button class="tab" onclick="switchTab(event,'standings')">
-        常规赛排名
-    </button>
+    <button class="tab active" onclick="switchTab(event,'bracket')">季后赛对阵图</button>
+    <button class="tab" onclick="switchTab(event,'standings')">常规赛排名</button>
 </div>
 
 <div class="section active" id="sec-bracket">
-
 <div class="progress-bar">
-
-    <div class="progress-text">
-        预测进度:
-        <span id="progress-num">0</span>
-        / 15
-    </div>
-
+    <div class="progress-text">预测进度: <span id="progress-num">0</span> / 15</div>
     <div class="progress-track">
         <div class="progress-fill" id="progress-bar-fill"></div>
     </div>
-
 </div>
-
 <div class="bracket-wrapper">
     <div class="bracket-main" id="bracket-main"></div>
 </div>
-
-<button class="reset-btn" onclick="resetBracket()">
-    🔄 重置所有预测
-</button>
-
+<button class="reset-btn" onclick="resetBracket()">🔄 重置所有预测</button>
 </div>
 
 <div class="section" id="sec-standings">
-
 <div class="standings-grid">
-
 <div class="conf-table">
-    <div class="conf-table-header west">
-        西部联盟 WEST
-    </div>
-
+    <div class="conf-table-header west">西部联盟 WEST</div>
     <table class="s-table" id="west-table"></table>
 </div>
-
 <div class="conf-table">
-    <div class="conf-table-header east">
-        东部联盟 EAST
-    </div>
-
+    <div class="conf-table-header east">东部联盟 EAST</div>
     <table class="s-table" id="east-table"></table>
 </div>
-
 </div>
 </div>
-
 </div>
 
-<!-- === 冠军弹窗（已补上） === -->
+<!-- 冠军弹窗 -->
 <div class="champion-modal" id="championModal">
     <canvas class="confetti" id="confetti"></canvas>
     <div class="champion-box">
@@ -788,29 +614,16 @@ h1{
 </div>
 
 <script>
-
-// ==================== SUPABASE ====================
-
-const SUPABASE_URL =
-"https://mqgmvpwweqviwyccjmdj.supabase.co";
-
-const SUPABASE_KEY =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZ212cHd3ZXF2aXd5Y2NqbWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODk2NjEsImV4cCI6MjA5Mzg2NTY2MX0.pV6r_eG865nEJv83-p-0bWkW3H5_jgowAsjgH1s7rAU";
-
-const supabaseClient =
-window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
+// Supabase
+const SUPABASE_URL = "https://mqgmvpwweqviwyccjmdj.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZ212cHd3ZXF2aXd5Y2NqbWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODk2NjEsImV4cCI6MjA5Mzg2NTY2MX0.pV6r_eG865nEJv83-p-0bWkW3H5_jgowAsjgH1s7rAU";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null;
-
 let selections = {};
 
-// ==================== 球队数据 ====================
-
+// 球队数据
 const westTeams = [
-
 { seed:1, name:'俄克拉荷马城雷霆', color:'#007AC1', w:64, l:18, pct:'.780' },
 { seed:2, name:'圣安东尼奥马刺', color:'#C4CED4', w:62, l:20, pct:'.756' },
 { seed:3, name:'丹佛掘金', color:'#0E2240', w:54, l:28, pct:'.659' },
@@ -826,11 +639,9 @@ const westTeams = [
 { seed:13, name:'孟菲斯灰熊', color:'#5D76A9', w:25, l:57, pct:'.305' },
 { seed:14, name:'萨克拉门托国王', color:'#5A2D81', w:22, l:60, pct:'.268' },
 { seed:15, name:'犹他爵士', color:'#002B5C', w:22, l:60, pct:'.268' }
-
 ];
 
 const eastTeams = [
-
 { seed:1, name:'底特律活塞', color:'#C8102E', w:60, l:22, pct:'.732' },
 { seed:2, name:'波士顿凯尔特人', color:'#007A33', w:56, l:26, pct:'.683' },
 { seed:3, name:'纽约尼克斯', color:'#006BB6', w:53, l:29, pct:'.646' },
@@ -846,827 +657,327 @@ const eastTeams = [
 { seed:13, name:'布鲁克林篮网', color:'#000000', w:20, l:62, pct:'.244' },
 { seed:14, name:'印第安纳步行者', color:'#002D62', w:19, l:63, pct:'.232' },
 { seed:15, name:'华盛顿奇才', color:'#002B5C', w:17, l:65, pct:'.207' }
-
 ];
 
 const west8 = westTeams.slice(0,8);
 const east8 = eastTeams.slice(0,8);
 
-// ==================== 页面初始化 ====================
-
-document.addEventListener(
-    'DOMContentLoaded',
-    async ()=>{
-
-    const {
-        data:{session}
-    } =
-    await supabaseClient.auth.getSession();
-
-    if(!session){
-
-        location.href = "index.html";
-        return;
-
-    }
-
+// 初始化
+document.addEventListener('DOMContentLoaded', async ()=>{
+    const {data:{session}} = await supabaseClient.auth.getSession();
+    if(!session){location.href="index.html";return;}
     currentUser = session.user;
-
     await loadUserBracket();
-
-    renderStandings(
-        westTeams,
-        'west-table'
-    );
-
-    renderStandings(
-        eastTeams,
-        'east-table'
-    );
-
+    renderStandings(westTeams,'west-table');
+    renderStandings(eastTeams,'east-table');
 });
 
-// ==================== 退出 ====================
-
 async function logout(){
-
     await supabaseClient.auth.signOut();
-
-    location.href = "index.html";
-
+    location.href="index.html";
 }
 
-// ==================== 数据 ====================
-
 async function loadUserBracket(){
-
     try{
-
-        const {data} =
-        await supabaseClient
-            .from("user_brackets")
-            .select("selections")
-            .eq("user_id", currentUser.id)
-            .maybeSingle();
-
+        const {data} = await supabaseClient.from("user_brackets").select("selections").eq("user_id",currentUser.id).maybeSingle();
         if(data?.selections){
-
-            if(
-                typeof data.selections
-                === 'string'
-            ){
-
-                selections =
-                JSON.parse(
-                    data.selections
-                );
-
-            }else{
-
-                selections =
-                data.selections;
-
-            }
-
+            selections = typeof data.selections==='string' ? JSON.parse(data.selections) : data.selections;
         }
-
-    }catch(err){
-
-        console.error(err);
-
-    }
-
+    }catch(e){console.error(e);}
     renderBracket();
-
 }
 
 async function saveUserBracket(){
-
     try{
-
-        await supabaseClient
-            .from("user_brackets")
-            .upsert([{
-
-                user_id:
-                    currentUser.id,
-
-                selections:
-                    selections,
-
-                updated_at:
-                    new Date().toISOString()
-
-            }],{
-
-                onConflict:'user_id'
-
-            });
-
-    }catch(err){
-
-        console.error(err);
-
-    }
-
+        await supabaseClient.from("user_brackets").upsert([{
+            user_id:currentUser.id,
+            selections:selections,
+            updated_at:new Date().toISOString()
+        }],{onConflict:'user_id'});
+    }catch(e){console.error(e);}
 }
 
-// ==================== 工具 ====================
+// 正确对阵规则
+function getRound1Matchups(conf){
+    const t = conf==='W'?west8:east8;
+    return [
+        [t[0], t[7]],
+        [t[1], t[6]],
+        [t[2], t[5]],
+        [t[3], t[4]]
+    ];
+}
 
-function mid(conf,round,m){
+function getRound2Matchups(conf){
+    const r1 = getRound1Matchups(conf);
+    let w = [];
+    for(let i=0;i<4;i++){
+        let sid = conf+'R1M'+i;
+        if(selections[sid]){
+            w.push(selections[sid]==='H' ? r1[i][0] : r1[i][1]);
+        }else{
+            w.push(null);
+        }
+    }
+    // 1/8 对 4/5 ； 2/7 对 3/6
+    return [
+        w[0]&&w[3] ? [w[0],w[3]] : null,
+        w[1]&&w[2] ? [w[1],w[2]] : null
+    ];
+}
 
-    return conf + 'R' + round + 'M' + m;
-
+function getRound3Matchups(conf){
+    const r2 = getRound2Matchups(conf);
+    let w = [];
+    for(let i=0;i<2;i++){
+        let sid = conf+'R2M'+i;
+        if(selections[sid]){
+            w.push(selections[sid]==='H' ? r2[i][0] : r2[i][1]);
+        }else{
+            w.push(null);
+        }
+    }
+    return w[0]&&w[1] ? [[w[0],w[1]]] : [null];
 }
 
 function getMatchups(conf,round){
+    if(round===1) return getRound1Matchups(conf);
+    if(round===2) return getRound2Matchups(conf);
+    if(round===3) return getRound3Matchups(conf);
+    return [];
+}
 
-    const t =
-    conf === 'W'
-    ? west8
-    : east8;
-
-    if(round === 1){
-
-        return [
-
-            [t[0],t[7]],
-            [t[1],t[6]],
-            [t[2],t[5]],
-            [t[3],t[4]]
-
-        ];
-
-    }
-
-    const prev =
-    getMatchups(
-        conf,
-        round - 1
-    );
-
-    const winners = [];
-
-    for(
-        let i=0;
-        i<prev.length;
-        i++
-    ){
-
-        const s =
-        selections[
-            mid(conf,round-1,i)
-        ];
-
-        if(s){
-
-            winners.push(
-
-                s === 'H'
-                ? prev[i][0]
-                : prev[i][1]
-
-            );
-
-        }else{
-
-            winners.push(null);
-
-        }
-
-    }
-
-    const res = [];
-
-    for(
-        let i=0;
-        i<winners.length;
-        i+=2
-    ){
-
-        if(
-            winners[i]
-            &&
-            winners[i+1]
-        ){
-
-            res.push([
-
-                winners[i],
-                winners[i+1]
-
-            ]);
-
-        }else{
-
-            res.push(null);
-
-        }
-
-    }
-
-    return res;
-
+function mid(conf,round,m){
+    return conf+'R'+round+'M'+m;
 }
 
 function getFinalsTeams(){
-
-    const w =
-    getMatchups('W',3);
-
-    const e =
-    getMatchups('E',3);
-
-    if(
-        !w[0]
-        ||
-        !e[0]
-    ){
-        return null;
-    }
-
-    const ws =
-    selections[mid('W',3,0)];
-
-    const es =
-    selections[mid('E',3,0)];
-
-    if(!ws || !es){
-
-        return null;
-
-    }
-
-    return [
-
-        ws === 'H'
-        ? w[0][0]
-        : w[0][1],
-
-        es === 'H'
-        ? e[0][0]
-        : e[0][1]
-
-    ];
-
+    const w3 = getRound3Matchups('W')[0];
+    const e3 = getRound3Matchups('E')[0];
+    if(!w3||!e3) return null;
+    let wId = 'WR3M0', eId='ER3M0';
+    let wTeam = selections[wId] ? (selections[wId]==='H'?w3[0]:w3[1]) : null;
+    let eTeam = selections[eId] ? (selections[eId]==='H'?e3[0]:e3[1]) : null;
+    if(!wTeam||!eTeam) return null;
+    return [wTeam,eTeam];
 }
 
-// ==================== HTML ====================
-
-function teamHTML(
-    team,
-    matchId,
-    side
-){
-
-    const isSel =
-    selections[matchId]
-    === side;
-
+// HTML 模板
+function teamHTML(team,matchId,side){
+    const isSel = selections[matchId] === side;
     return `
-    <div
-        class="team-row ${isSel ? 'selected':''}"
-        onclick="pick('${matchId}','${side}')"
-    >
-
-        <span class="seed-badge">
-            ${team.seed}
-        </span>
-
-        <span
-            class="team-dot"
-            style="background:${team.color}"
-        ></span>
-
-        <span class="tname">
-            ${team.name}
-        </span>
-
-        <span class="trecord">
-            ${team.w}-${team.l}
-        </span>
-
-        <span class="win-check">
-            ✓
-        </span>
-
+    <div class="team-row ${isSel?'selected':''}" onclick="pick('${matchId}','${side}')">
+        <span class="seed-badge">${team.seed}</span>
+        <span class="team-dot" style="background:${team.color}"></span>
+        <span class="tname">${team.name}</span>
+        <span class="trecord">${team.w}-${team.l}</span>
+        <span class="win-check">✓</span>
     </div>
     `;
-
 }
 
 function emptyTeamHTML(){
-
     return `
     <div class="team-row empty">
-
         <span class="seed-badge">?</span>
-
-        <span
-            class="team-dot"
-            style="background:#333"
-        ></span>
-
-        <span class="tname">
-            等待胜者
-        </span>
-
+        <span class="team-dot" style="background:#333"></span>
+        <span class="tname">等待胜者</span>
         <span class="trecord">-</span>
-
     </div>
     `;
-
 }
 
 function matchupHTML(pair,matchId){
-
     if(!pair){
-
-        return `
-        <div class="matchup">
-            ${emptyTeamHTML()}
-            ${emptyTeamHTML()}
-        </div>
-        `;
+        return `<div class="matchup">${emptyTeamHTML()}${emptyTeamHTML()}</div>`;
     }
-
-    return `
-    <div class="matchup">
-
-        ${teamHTML(pair[0],matchId,'H')}
-
-        ${teamHTML(pair[1],matchId,'L')}
-
-    </div>
-    `;
-
+    return `<div class="matchup">${teamHTML(pair[0],matchId,'H')}${teamHTML(pair[1],matchId,'L')}</div>`;
 }
 
 function roundLabel(r){
-
-    return r===1
-        ? '首轮'
-        : r===2
-        ? '半决赛'
-        : '分区决赛';
-
+    return r===1?'首轮':r===2?'半决赛':'分区决赛';
 }
 
-// ==================== 渲染对阵 ====================
-
+// 渲染对阵
 function renderBracket(){
-
-    const el =
-    document.getElementById(
-        'bracket-main'
-    );
-
+    const el = document.getElementById('bracket-main');
     let html = '';
 
     // 西部
-    html += `
-    <div class="conf-side west">
-
-        <div class="conf-label west">
-            西部
-        </div>
-    `;
-
+    html += `<div class="conf-side west"><div class="conf-label west">西部</div>`;
     for(let r=1;r<=3;r++){
-
-        html += `
-        <div class="conn">
-            <div class="conn-line"></div>
-        </div>
-        `;
-
-        html += `
-        <div class="round-col r${r}">
-            <div class="round-label">
-                ${roundLabel(r)}
-            </div>
-        `;
-
-        const ms =
-        getMatchups('W',r);
-
-        const cnt =
-        r===1 ? 4 :
-        r===2 ? 2 : 1;
-
+        html += `<div class="conn"><div class="conn-line"></div></div>`;
+        html += `<div class="round-col r${r}"><div class="round-label">${roundLabel(r)}</div>`;
+        const ms = getMatchups('W',r);
+        const cnt = r===1?4:r===2?2:1;
         for(let i=0;i<cnt;i++){
-
-            html += matchupHTML(
-                ms[i],
-                mid('W',r,i)
-            );
-
+            html += matchupHTML(ms[i], mid('W',r,i));
         }
-
         html += `</div>`;
-
     }
-
     html += `</div>`;
 
     // 总决赛
-
-    const ft =
-    getFinalsTeams();
-
-    const fs =
-    selections['FINALS'];
-
-    html += `
-    <div class="finals-zone">
-
-        <div class="conn">
-            <div class="conn-line"></div>
-        </div>
-
-        <div class="finals-card ${fs ? 'complete':''}">
-
-            <div class="finals-header">
-                NBA 总决赛
-            </div>
-    `;
-
+    const ft = getFinalsTeams();
+    const fs = selections['FINALS'];
+    html += `<div class="finals-zone"><div class="conn"><div class="conn-line"></div></div>
+    <div class="finals-card ${fs?'complete':''}">
+        <div class="finals-header">NBA 总决赛</div>`;
     if(ft){
-
         html += `
-        <div
-            class="finals-team ${fs==='W' ? 'selected':''}"
-            onclick="pickFinals('W')"
-        >
-
-            <span
-                class="team-dot"
-                style="background:${ft[0].color}"
-            ></span>
-
-            <span class="tname">
-                ${ft[0].name}
-            </span>
-
+        <div class="finals-team ${fs==='W'?'selected':''}" onclick="pickFinals('W')">
+            <span class="team-dot" style="background:${ft[0].color}"></span>
+            <span class="tname">${ft[0].name}</span>
         </div>
-
-        <div class="finals-vs">
-            VS
-        </div>
-
-        <div
-            class="finals-team ${fs==='E' ? 'selected':''}"
-            onclick="pickFinals('E')"
-        >
-
-            <span
-                class="team-dot"
-                style="background:${ft[1].color}"
-            ></span>
-
-            <span class="tname">
-                ${ft[1].name}
-            </span>
-
-        </div>
-        `;
-
-    }else{
-
-        html += `
-        ${emptyTeamHTML()}
         <div class="finals-vs">VS</div>
-        ${emptyTeamHTML()}
-        `;
-    }
-
-    html += `
+        <div class="finals-team ${fs==='E'?'selected':''}" onclick="pickFinals('E')">
+            <span class="team-dot" style="background:${ft[1].color}"></span>
+            <span class="tname">${ft[1].name}</span>
         </div>
-    </div>
-    `;
+        `;
+    }else{
+        html += `${emptyTeamHTML()}<div class="finals-vs">VS</div>${emptyTeamHTML()}`;
+    }
+    html += `</div></div>`;
 
     // 东部
-
-    html += `
-    <div class="conf-side east">
-
-        <div class="conf-label east">
-            东部
-        </div>
-    `;
-
+    html += `<div class="conf-side east"><div class="conf-label east">东部</div>`;
     for(let r=1;r<=3;r++){
-
-        html += `
-        <div class="conn">
-            <div class="conn-line"></div>
-        </div>
-        `;
-
-        html += `
-        <div class="round-col r${r}">
-            <div class="round-label">
-                ${roundLabel(r)}
-            </div>
-        `;
-
-        const ms =
-        getMatchups('E',r);
-
-        const cnt =
-        r===1 ? 4 :
-        r===2 ? 2 : 1;
-
+        html += `<div class="conn"><div class="conn-line"></div></div>`;
+        html += `<div class="round-col r${r}"><div class="round-label">${roundLabel(r)}</div>`;
+        const ms = getMatchups('E',r);
+        const cnt = r===1?4:r===2?2:1;
         for(let i=0;i<cnt;i++){
-
-            html += matchupHTML(
-                ms[i],
-                mid('E',r,i)
-            );
-
+            html += matchupHTML(ms[i], mid('E',r,i));
         }
-
         html += `</div>`;
-
     }
-
     html += `</div>`;
 
     el.innerHTML = html;
-
     updateProgress();
-
 }
 
-// ==================== 选择 ====================
-
+// 选择比赛
 function pick(matchId,side){
-
-    if(
-        selections[matchId]
-        === side
-    ){
-
-        delete selections[matchId];
-
-    }else{
-
-        selections[matchId] = side;
-
-    }
-
+    if(selections[matchId]===side) delete selections[matchId];
+    else selections[matchId]=side;
     renderBracket();
-
     saveUserBracket();
-
 }
 
-// === 选择总冠军 + 触发特效（已补上） ===
+// 选择总冠军 + 触发特效
 function pickFinals(side){
     const ft = getFinalsTeams();
     if(!ft) return;
-
-    if(selections['FINALS'] === side){
+    if(selections['FINALS']===side){
         delete selections['FINALS'];
     }else{
         selections['FINALS'] = side;
-        // 自动弹出冠军特效
-        showChampionEffect(side === 'W' ? ft[0] : ft[1]);
+        let champion = side==='W' ? ft[0] : ft[1];
+        showChampionEffect(champion);
     }
-
     renderBracket();
     saveUserBracket();
 }
 
-// ==================== 重置 ====================
-
+// 重置
 function resetBracket(){
-
-    if(
-        !confirm(
-            '确定清空所有预测吗？'
-        )
-    ){
-        return;
-    }
-
-    selections = {};
-
+    if(!confirm('确定清空所有预测吗？'))return;
+    selections={};
     renderBracket();
-
     saveUserBracket();
-
 }
 
-// ==================== 进度 ====================
-
+// 进度
 function updateProgress(){
-
-    const total = 15;
-
-    const done =
-    Object.keys(selections)
-    .length;
-
-    document.getElementById(
-        'progress-num'
-    ).innerText = done;
-
-    document.getElementById(
-        'progress-bar-fill'
-    ).style.width =
-        (done/total*100) + '%';
-
+    const total=15;
+    const done = Object.keys(selections).length;
+    document.getElementById('progress-num').innerText=done;
+    document.getElementById('progress-bar-fill').style.width = (done/total*100)+'%';
 }
 
-// ==================== TAB ====================
-
+// 切换标签
 function switchTab(event,tab){
-
-    document
-        .querySelectorAll('.tab')
-        .forEach(t=>
-            t.classList.remove('active')
-        );
-
-    event.target.classList.add(
-        'active'
-    );
-
-    document
-        .querySelectorAll('.section')
-        .forEach(s=>
-            s.classList.remove('active')
-        );
-
-    document.getElementById(
-        'sec-' + tab
-    ).classList.add('active');
-
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec-'+tab).classList.add('active');
 }
 
-// ==================== 排名 ====================
-
-function renderStandings(
-    teams,
-    tableId
-){
-
-    const tbl =
-    document.getElementById(
-        tableId
-    );
-
+// 渲染排名
+function renderStandings(teams,tableId){
+    const tbl = document.getElementById(tableId);
     let html = `
-    <thead>
-    <tr>
-        <th>排名</th>
-        <th>球队</th>
-        <th>战绩</th>
-        <th>胜率</th>
-    </tr>
-    </thead>
-    <tbody>
+    <thead><tr><th>排名</th><th>球队</th><th>战绩</th><th>胜率</th></tr></thead><tbody>
     `;
-
     teams.forEach(t=>{
-
-        let rankCls =
-        'rank-badge ';
-
-        if(t.seed <= 6){
-
-            rankCls += 'r1-6';
-
-        }else if(t.seed <= 10){
-
-            rankCls += 'r7-10';
-
-        }else{
-
-            rankCls += 'r11-15';
-
-        }
-
-        if(t.seed === 7){
-
-            html += `
-            <tr class="divider-playin">
-                <td colspan="4">
-                    附加赛区域 7-10名
-                </td>
-            </tr>
-            `;
-        }
-
-        if(t.seed === 11){
-
-            html += `
-            <tr class="divider-out">
-                <td colspan="4">
-                    无缘季后赛
-                </td>
-            </tr>
-            `;
-        }
-
+        let rankCls = t.seed<=6?'r1-6':t.seed<=10?'r7-10':'r11-15';
+        if(t.seed===7) html += `<tr class="divider-playin"><td colspan="4">附加赛区域 7-10名</td></tr>`;
+        if(t.seed===11) html += `<tr class="divider-out"><td colspan="4">无缘季后赛</td></tr>`;
         html += `
         <tr>
-
-            <td>
-                <span class="${rankCls}">
-                    ${t.seed}
-                </span>
-            </td>
-
-            <td>
-
-                <div class="team-info">
-
-                    <span
-                        class="team-dot-sm"
-                        style="background:${t.color}"
-                    ></span>
-
-                    ${t.name}
-
-                </div>
-
-            </td>
-
-            <td style="color:#aaa">
-                ${t.w}-${t.l}
-            </td>
-
-            <td class="pct">
-                ${t.pct}
-            </td>
-
+            <td><span class="rank-badge ${rankCls}">${t.seed}</span></td>
+            <td><div class="team-info"><span class="team-dot-sm" style="background:${t.color}"></span>${t.name}</div></td>
+            <td style="color:#aaa">${t.w}-${t.l}</td>
+            <td class="pct">${t.pct}</td>
         </tr>
         `;
-
     });
-
     html += `</tbody>`;
-
     tbl.innerHTML = html;
-
 }
 
-// ==================== 冠军特效逻辑（已补上） ====================
-function showChampionEffect(team) {
+// ========== 冠军特效 ==========
+let confettiAnim = null;
+
+function showChampionEffect(team){
     document.getElementById('championTeamName').innerText = team.name;
     document.getElementById('championTeamRecord').innerText = `${team.w}胜${team.l}负`;
     document.getElementById('championModal').classList.add('show');
     startConfetti();
 }
 
-function closeChampion() {
+function closeChampion(){
     document.getElementById('championModal').classList.remove('show');
     stopConfetti();
 }
 
-// 彩带动画
-let confettiAnimation = null;
-function startConfetti() {
+function startConfetti(){
     const canvas = document.getElementById('confetti');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
-    const pieces = [];
-    for (let i = 0; i < 200; i++) {
+    let pieces = [];
+    for(let i=0;i<220;i++){
         pieces.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            r: Math.random() * 10 + 5,
-            d: Math.random() * 10 + 5,
-            color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-            tilt: Math.random() * 10 - 10,
-            speed: Math.random() * 3 + 2
+            x:Math.random()*canvas.width,
+            y:Math.random()*canvas.height-canvas.height,
+            r:Math.random()*8+4,
+            d:Math.random()*12+4,
+            color:`hsl(${Math.random()*360},100%,60%)`,
+            speed:Math.random()*2.5+1.5
         });
     }
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let p of pieces) {
+    function draw(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(let p of pieces){
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = p.color;
+            ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+            ctx.fillStyle=p.color;
             ctx.fill();
             p.y += p.speed;
-            p.x += Math.sin(p.d) * 2;
-            if (p.y > canvas.height) p.y = -10;
+            p.x += Math.sin(p.d)*1.5;
+            if(p.y>canvas.height) p.y=-20;
         }
-        confettiAnimation = requestAnimationFrame(draw);
+        confettiAnim = requestAnimationFrame(draw);
     }
     draw();
 }
 
-function stopConfetti() {
-    if (confettiAnimation) cancelAnimationFrame(confettiAnimation);
+function stopConfetti(){
+    if(confettiAnim) cancelAnimationFrame(confettiAnim);
 }
-
 </script>
 
 </body>
