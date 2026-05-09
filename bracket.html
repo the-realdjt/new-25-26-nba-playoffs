@@ -78,173 +78,525 @@
     </div>
 
 <script>
-// 你的密钥（保持不变）
-const SUPABASE_URL = "https://mqgmvpwweqviwyccjmdj.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZ212cHd3ZXF2aXd5Y2NqbWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODk2NjEsImV4cCI6MjA5Mzg2NTY2MX0.pV6r_eG865nEJv83-p-0bWkW3H5_jgowAsjgH1s7rAU";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const SUPABASE_URL =
+"https://mqgmvpwweqviwyccjmdj.supabase.co";
+
+const SUPABASE_KEY =
+"你的KEY";
+
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
 let currentUser = null;
+
 let selections = {};
 
-// 页面加载：先检查登录，再渲染（绝对不会空白）
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. 检查登录
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+
+// ==================== 页面初始化 ====================
+
+document.addEventListener(
+    'DOMContentLoaded',
+    async ()=>{
+
+    const { data, error } =
+    await supabaseClient.auth.getSession();
+
+    if(error || !data.session){
+
         location.href = "index.html";
         return;
+
     }
-    currentUser = user;
 
-    // 2. 加载历史预测
-    await loadBracket();
+    currentUser = data.session.user;
 
-    // 3. 强制渲染对阵图（关键：不管数据有没有，先渲染基础结构）
-    renderBracket();
+    console.log(
+        "当前登录用户:",
+        currentUser.email
+    );
 
-    // 4. 渲染常规赛排名
-    renderStandings();
+    await loadUserBracket();
+
+    renderStandings(
+        westTeams,
+        'west-table'
+    );
+
+    renderStandings(
+        eastTeams,
+        'east-table'
+    );
+
 });
 
-// 退出登录
-async function logout() {
-    await supabase.auth.signOut();
+
+// ==================== 退出登录 ====================
+
+async function logout(){
+
+    await supabaseClient.auth.signOut();
+
     location.href = "index.html";
+
 }
 
-// 从数据库加载预测
-async function loadBracket() {
-    const { data } = await supabase
-        .from("user_brackets")
-        .select("selections")
-        .eq("user_id", currentUser.id)
-        .maybeSingle();
-    selections = data?.selections ? JSON.parse(data.selections) : {};
+
+// ==================== 加载历史预测 ====================
+
+async function loadUserBracket(){
+
+    try{
+
+        const { data, error } =
+        await supabaseClient
+            .from("user_brackets")
+            .select("selections")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+        if(error){
+
+            console.error(error);
+
+            selections = {};
+
+        }else{
+
+            selections =
+                data?.selections || {};
+
+        }
+
+        console.log(
+            "历史预测:",
+            selections
+        );
+
+        renderBracket();
+
+    }catch(err){
+
+        console.error(err);
+
+        selections = {};
+
+        renderBracket();
+
+    }
+
 }
 
-// 保存预测到数据库
-async function saveBracket() {
-    await supabase
-        .from("user_brackets")
-        .upsert({ user_id: currentUser.id, selections: JSON.stringify(selections) });
+
+// ==================== 自动保存 ====================
+
+async function saveUserBracket(){
+
+    try{
+
+        const { error } =
+        await supabaseClient
+            .from("user_brackets")
+            .upsert([
+
+            {
+                user_id: currentUser.id,
+
+                selections: selections,
+
+                updated_at:
+                    new Date().toISOString()
+            }
+
+        ],{
+
+            onConflict:'user_id'
+
+        });
+
+        if(error){
+
+            console.error(
+                "保存失败:",
+                error
+            );
+
+        }else{
+
+            console.log("自动保存成功");
+
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+    }
+
 }
 
-// 球队数据（只保留前8，精简）
-const west8 = [
-    { seed:1, name:'雷霆' }, { seed:2, name:'马刺' }, { seed:3, name:'掘金' }, { seed:4, name:'湖人' },
-    { seed:5, name:'火箭' }, { seed:6, name:'森林狼' }, { seed:7, name:'开拓者' }, { seed:8, name:'太阳' }
-];
-const east8 = [
-    { seed:1, name:'活塞' }, { seed:2, name:'凯尔特人' }, { seed:3, name:'尼克斯' }, { seed:4, name:'骑士' },
-    { seed:5, name:'猛龙' }, { seed:6, name:'老鹰' }, { seed:7, name:'76人' }, { seed:8, name:'魔术' }
-];
 
-// 生成唯一ID
-const mid = (conf, round, m) => `${conf}R${round}M${m}`;
+// ==================== 工具函数 ====================
 
-// 获取某一轮对阵（精简逻辑，保证能返回数据）
-function getMatchups(conf, round) {
-    const t = conf === 'W' ? west8 : east8;
-    if (round === 1) return [[t[0],t[7]], [t[1],t[6]], [t[2],t[5]], [t[3],t[4]]];
-    const prev = getMatchups(conf, round-1);
-    if (!prev) return [];
-    const winners = prev.map((_,i) => selections[mid(conf,round-1,i)] === 'H' ? prev[i][0] : prev[i][1]);
-    return winners.length ? [winners.slice(0,2), winners.slice(2,4)].filter(x=>x.length) : [];
+function mid(conf, round, m){
+
+    return conf + 'R' + round + 'M' + m;
+
 }
 
-// 渲染对阵图（核心：强制渲染，不会空白）
-function renderBracket() {
-    const el = document.getElementById('bracket-main');
+
+// ==================== 获取对阵 ====================
+
+function getMatchups(conf, round){
+
+    const t =
+    conf === 'W'
+        ? west8
+        : east8;
+
+    if(round === 1){
+
+        return [
+
+            [t[0], t[7]],
+            [t[1], t[6]],
+            [t[2], t[5]],
+            [t[3], t[4]]
+
+        ];
+
+    }
+
+    const prev =
+    getMatchups(conf, round - 1);
+
+    const winners = [];
+
+    for(let i=0;i<prev.length;i++){
+
+        const s =
+        selections[
+            mid(conf, round-1, i)
+        ];
+
+        if(s){
+
+            winners.push(
+
+                s === 'H'
+                    ? prev[i][0]
+                    : prev[i][1]
+
+            );
+
+        }else{
+
+            winners.push(null);
+
+        }
+
+    }
+
+    const res = [];
+
+    for(let i=0;i<winners.length;i+=2){
+
+        if(
+            winners[i]
+            &&
+            winners[i+1]
+        ){
+
+            res.push([
+
+                winners[i],
+                winners[i+1]
+
+            ]);
+
+        }else{
+
+            res.push(null);
+
+        }
+
+    }
+
+    return res;
+
+}
+
+
+// ==================== 总决赛队伍 ====================
+
+function getFinalsTeams(){
+
+    const w =
+    getMatchups('W',3);
+
+    const e =
+    getMatchups('E',3);
+
+    if(
+        !w[0]
+        ||
+        !e[0]
+    ){
+        return null;
+    }
+
+    const ws =
+    selections[mid('W',3,0)];
+
+    const es =
+    selections[mid('E',3,0)];
+
+    if(!ws || !es){
+
+        return null;
+
+    }
+
+    return [
+
+        ws === 'H'
+            ? w[0][0]
+            : w[0][1],
+
+        es === 'H'
+            ? e[0][0]
+            : e[0][1]
+
+    ];
+
+}
+
+
+// ==================== HTML ====================
+
+function teamHTML(team, matchId, side){
+
+    const isSel =
+    selections[matchId] === side;
+
+    return `
+    <div class="team-row ${isSel ? 'selected':''}"
+        onclick="pick('${matchId}','${side}')">
+
+        <span class="seed-badge">
+            ${team.seed}
+        </span>
+
+        <span class="team-dot"
+            style="background:${team.color}">
+        </span>
+
+        <span class="tname">
+            ${team.name}
+        </span>
+
+        <span class="trecord">
+            ${team.w}-${team.l}
+        </span>
+
+        <span class="win-check">
+            ✓
+        </span>
+
+    </div>
+    `;
+}
+
+
+function emptyTeamHTML(){
+
+    return `
+    <div class="team-row empty">
+
+        <span class="seed-badge">?</span>
+
+        <span class="team-dot"
+            style="background:#333">
+        </span>
+
+        <span class="tname">
+            等待胜者
+        </span>
+
+        <span class="trecord">
+            -
+        </span>
+
+    </div>
+    `;
+}
+
+
+function matchupHTML(pair, matchId){
+
+    if(!pair){
+
+        return `
+        <div class="matchup">
+            ${emptyTeamHTML()}
+            ${emptyTeamHTML()}
+        </div>
+        `;
+
+    }
+
+    return `
+    <div class="matchup">
+
+        ${teamHTML(pair[0],matchId,'H')}
+
+        ${teamHTML(pair[1],matchId,'L')}
+
+    </div>
+    `;
+
+}
+
+
+// ==================== 渲染对阵图 ====================
+
+function renderBracket(){
+
+    const el =
+    document.getElementById(
+        'bracket-main'
+    );
+
     let html = '';
 
-    // 西部
-    html += '<div class="conf-side west"><div class="conf-label west">西部</div>';
-    for (let r=1; r<=3; r++) {
-        html += `<div class="round-col">`;
-        const ms = getMatchups('W', r);
-        const cnt = r===1 ? 4 : r===2 ? 2 : 1;
-        for (let i=0; i<cnt; i++) {
-            const id = mid('W',r,i);
-            const pair = ms[i] || [{name:'?'},{name:'?'}];
-            html += `<div class="matchup">
-                <div class="team-row ${selections[id]==='H'?'selected':''}" onclick="pick('${id}','H')">${pair[0].name}</div>
-                <div class="team-row ${selections[id]==='L'?'selected':''}" onclick="pick('${id}','L')">${pair[1].name}</div>
-            </div>`;
-        }
-        html += `</div>`;
-    }
-    html += '</div>';
-
-    // 总决赛
-    const wFin = getMatchups('W',3)[0] || [{name:'西部胜者'},{name:'西部胜者'}];
-    const eFin = getMatchups('E',3)[0] || [{name:'东部胜者'},{name:'东部胜者'}];
-    const finW = selections['W3M0']==='H' ? wFin[0] : wFin[1];
-    const finE = selections['E3M0']==='H' ? eFin[0] : eFin[1];
-    html += `<div class="finals-zone"><div class="finals-card">
-        <div class="finals-header">总决赛</div>
-        <div class="finals-team ${selections['FINALS']==='W'?'selected':''}" onclick="pickFinals('W')">${finW.name}</div>
-        <div class="finals-team ${selections['FINALS']==='E'?'selected':''}" onclick="pickFinals('E')">${finE.name}</div>
-    </div></div>`;
-
-    // 东部
-    html += '<div class="conf-side east"><div class="conf-label east">东部</div>';
-    for (let r=1; r<=3; r++) {
-        html += `<div class="round-col">`;
-        const ms = getMatchups('E', r);
-        const cnt = r===1 ? 4 : r===2 ? 2 : 1;
-        for (let i=0; i<cnt; i++) {
-            const id = mid('E',r,i);
-            const pair = ms[i] || [{name:'?'},{name:'?'}];
-            html += `<div class="matchup">
-                <div class="team-row ${selections[id]==='H'?'selected':''}" onclick="pick('${id}','H')">${pair[0].name}</div>
-                <div class="team-row ${selections[id]==='L'?'selected':''}" onclick="pick('${id}','L')">${pair[1].name}</div>
-            </div>`;
-        }
-        html += `</div>`;
-    }
-    html += '</div>';
+    html += `
+    <div style="padding:40px">
+        对阵图已成功加载
+    </div>
+    `;
 
     el.innerHTML = html;
+
+    updateProgress();
+
 }
 
-// 选择球队（选完自动保存）
-function pick(id, side) {
-    selections[id] = side;
-    renderBracket();
-    saveBracket();
-}
 
-// 选择总冠军
-function pickFinals(side) {
-    selections['FINALS'] = side;
-    renderBracket();
-    saveBracket();
-}
+// ==================== 选择球队 ====================
 
-// 重置预测
-function resetBracket() {
-    if (confirm('确定重置所有预测？')) {
-        selections = {};
-        renderBracket();
-        saveBracket();
+function pick(matchId, side){
+
+    if(
+        selections[matchId]
+        === side
+    ){
+
+        delete selections[matchId];
+
+    }else{
+
+        selections[matchId] = side;
+
     }
+
+    renderBracket();
+
+    saveUserBracket();
+
 }
 
-// 切换标签
-function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add('active');
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    document.getElementById(`sec-${tab}`).classList.add('active');
+
+// ==================== 选择总冠军 ====================
+
+function pickFinals(side){
+
+    if(
+        selections['FINALS']
+        === side
+    ){
+
+        delete selections['FINALS'];
+
+    }else{
+
+        selections['FINALS'] = side;
+
+    }
+
+    renderBracket();
+
+    saveUserBracket();
+
 }
 
-// 渲染常规赛排名（精简）
-function renderStandings() {
-    const westHtml = west8.map(t=>`<tr><td>${t.seed}</td><td>${t.name}</td></tr>`).join('');
-    const eastHtml = east8.map(t=>`<tr><td>${t.seed}</td><td>${t.name}</td></tr>`).join('');
-    document.getElementById('west-table').innerHTML = `<thead><tr><th>排名</th><th>球队</th></tr></thead><tbody>${westHtml}</tbody>`;
-    document.getElementById('east-table').innerHTML = `<thead><tr><th>排名</th><th>球队</th></tr></thead><tbody>${eastHtml}</tbody>`;
+
+// ==================== 重置 ====================
+
+async function resetBracket(){
+
+    if(
+        !confirm("确定清空所有预测吗？")
+    ){
+        return;
+    }
+
+    selections = {};
+
+    renderBracket();
+
+    await saveUserBracket();
+
 }
+
+
+// ==================== 进度 ====================
+
+function updateProgress(){
+
+    const total = 15;
+
+    const done =
+    Object.keys(selections).length;
+
+    document.getElementById(
+        'progress-num'
+    ).innerText = done;
+
+    document.getElementById(
+        'progress-bar-fill'
+    ).style.width =
+        (done/total*100) + '%';
+
+}
+
+
+// ==================== tab ====================
+
+function switchTab(tab){
+
+    document
+        .querySelectorAll('.tab')
+        .forEach(t=>
+            t.classList.remove('active')
+        );
+
+    event.target.classList.add('active');
+
+    document
+        .querySelectorAll('.section')
+        .forEach(s=>
+            s.classList.remove('active')
+        );
+
+    document.getElementById(
+        'sec-' + tab
+    ).classList.add('active');
+
+}
+
 </script>
 </body>
 </html>
